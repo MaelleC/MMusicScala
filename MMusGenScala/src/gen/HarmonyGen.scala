@@ -89,7 +89,7 @@ case class HarmonyGen(melody: MusicalSegment) {
           findChord(nextC, possC.tail, nextC :: buf)
         }
       } else if (possC.head.head.c == EmptyChord) {
-        //silent : give silent chord, but comtinues harmony for next
+        //silent : give silent chord, but continues harmony for next
         findChord(i, possC.tail, ChInv(EmptyChord, Nil) :: buf)
       }
 
@@ -138,7 +138,8 @@ case class HarmonyGen(melody: MusicalSegment) {
     def findTones(pred: List[Tone], curr: Chord, currm: Tone): List[Tone] = {
       ???
     }
-    ???
+    
+    (chords zip mel) map {x => x._1.c.tones map {y => y(x._2.newTone(0, x._2.alter))}}
   }
 
   // from http://stackoverflow.com/questions
@@ -215,35 +216,6 @@ case class HarmonyGen(melody: MusicalSegment) {
 
 }
 
-//TODO : test and then put in Note / Tone after asking Valerian
-object NoteOrdering extends Ordering[Note] {
-  def compare(a: Note, b: Note) = {
-    ToneOrdering.compare(a.tone, b.tone)
-  }
-}
-object ToneOrdering extends Ordering[Tone] {
-  def compare(a: Tone, b: Tone) = {
-    if (a.stepsTo(b) < 0) 1
-    else if (a.stepsTo(b) > 0) -1
-    else if (a.alter == b.alter) 0
-    else if (a.alter.isDefined) {
-      if (a.alter.get) 1 else -1
-    } else {
-      if (b.alter.get) -1 else 1
-    }
-  }
-}
 
-class ChI
-case class ChInv(c: Chord, i: List[Inversion]) extends ChI
-class ChiEnd extends ChI
-case object EndReal extends ChiEnd //want real complete cadencs
-case object EndMiddle extends ChiEnd // deceptive cadence can be ok
-case object EndHalf extends ChiEnd
 
-//TODO : perhaps represent differently ?
-trait Inversion
-case object Fond extends Inversion
-case object Inv1 extends Inversion
-case object Inv2 extends Inversion
-case object Inv3 extends Inversion
+
