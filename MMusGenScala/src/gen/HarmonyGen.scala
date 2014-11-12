@@ -15,6 +15,8 @@ case class HarmonyGen(melody: MusicalSegment) {
   //TODO add all what is in the grammar
   //TODO : should be ChInv perhaps ?
 
+  val nbChordNotes = 4; //TODO : for now, for basic not placement
+
   def harmonize(endF: ChiEnd): (MusicalSegment, ParallelSegment) = {
     val mel = getMel(melody)
 
@@ -27,19 +29,18 @@ case class HarmonyGen(melody: MusicalSegment) {
     val melT = mel.notes map (_.tone)
     val possibleChords: List[List[ChInv]] = melT map (getPossChords(_))
     val chosenChords = findChords(possibleChords, endF)
-    val chosenTonesL = findAllTones(chosenChords, melT)
+    val chosenTonesL = findAllTones(chosenChords, melT, nbChordNotes)
     val chosenNotes = tonesToNotes(chosenTonesL, mel.notes)
 
     (mel, createPar(transpose(chosenNotes)))
 
   }
-  
-  def getMel(melody: MusicalSegment) : MusicalSegment = {
+
+  def getMel(melody: MusicalSegment): MusicalSegment = {
     val flatMel = melody.flatAll
     if (flatMel.parDepth != 0) {
       getOneVoice(flatMel)
-    }
-    else flatMel
+    } else flatMel
   }
 
   def getOneVoice(mel: MusicalSegment): MusicalSegment = {
@@ -136,17 +137,26 @@ case class HarmonyGen(melody: MusicalSegment) {
   /**
    * returns a sequential list of parallel list of notes, without the melody
    */
-  def findAllTones(chords: List[ChInv], mel: List[Tone] /*, lowerBound: Tone*/ ): List[List[Tone]] = {
+  def findAllTones(chords: List[ChInv], mel: List[Tone], nbNotes: Int /*, lowerBound: Tone*/ ): List[List[Tone]] = {
     //TODO : fct that put away some inversions from a list of chord
     // (ex : if V7+ -> I, I has to be Fond, can't be I6)
 
+    //TODO ? In fact, need the real melody for right not placement
+    //fct used if use of constraints possibly
     def findTones(pred: List[Tone], curr: Chord, currm: Tone): List[Tone] = {
       ???
     }
-    
-    //TODO : for now, gives the 3 first notes of each chord
-    val minNotesAccChords = 3
-    (chords zip mel) map {x => (x._1.c.tones map {y => y(x._2.newTone(0, x._2.alter))}).take(minNotesAccChords)}
+
+    //TODO : for now, gives the nbNotes first notes of each chord
+    //later : take melody into account, esp. if nbNotes = 3 for Seventh, esp. if inversions
+    (chords zip mel) map { x =>
+      if (x._1.c != EmptyChord) {
+        (0 until nbNotes).toList map { y => x._1.c(y + (x._1.i.head.first % x._1.c.tones.length)) }
+      } else {
+        //if EmptyChord
+        (0 until nbNotes).toList map { y => O }
+      }
+    }
   }
 
   // from http://stackoverflow.com/questions
@@ -191,7 +201,7 @@ case class HarmonyGen(melody: MusicalSegment) {
       //case ChInv(Triad(I(_, None)), i) if testInv(i, List(Inv2)) => ???
       case ChInv(Seventh(V(o, None)), i) if testInv(i) => prevPoss(ChInv(Triad(V(o, None)), List(Fond, Inv1)))
       //TODO : add others
-      case EndReal => getCiL(I, List(Fond)) ::: getCiL(IV, List(Fond)) ::: getCiL(V, List(Fond))
+      case EndReal => getCiL(I, List(Fond)) ::: getCiL(V, List(Fond))
       case EndMiddle => getCiL(I, List(Fond)) ::: getCiL(VI, List(Fond)) //perhaps Inv1 ok for VI ?
       case EndHalf => getCiL(V, List(Fond))
       case _ => Nil

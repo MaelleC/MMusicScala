@@ -10,8 +10,19 @@ case object EndMiddle extends ChiEnd // deceptive cadence can be ok
 case object EndHalf extends ChiEnd
 
 //TODO : perhaps represent differently ?
-trait Inversion
-case object Fond extends Inversion
-case object Inv1 extends Inversion
-case object Inv2 extends Inversion
-case object Inv3 extends Inversion
+trait Inversion {
+  val first: Int
+}
+
+case object Fond extends Inversion {
+  val first = 0
+}
+case object Inv1 extends Inversion {
+  val first = 1
+}
+case object Inv2 extends Inversion {
+  val first = 2
+}
+case object Inv3 extends Inversion {
+  val first = 3
+}
