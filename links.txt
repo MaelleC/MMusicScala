@@ -23,5 +23,8 @@ https://github.com/namin/metasolfeggio/tree/master/commonmusic
 
 https://github.com/namin/metasolfeggio
 
+http://commonmusic.sourceforge.net/
+http://commonmusic.sourceforge.net/
+
 --------
 http://stackoverflow.com/questions/12521065/running-sbt-results-in-com-typesafe-sbteclipsesbteclipse1-4-0-not-found
