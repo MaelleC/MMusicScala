@@ -138,23 +138,40 @@ case class HarmonyGen(melody: MusicalSegment) {
    * returns a sequential list of parallel list of notes, without the melody
    */
   def findAllTones(chords: List[ChInv], mel: List[Tone], nbNotes: Int /*, lowerBound: Tone*/ ): List[List[Tone]] = {
-    //TODO : fct that put away some inversions from a list of chord
+    //TODO ? : fct that put away some inversions from a list of chord
     // (ex : if V7+ -> I, I has to be Fond, can't be I6)
 
-    //TODO ? In fact, need the real melody for right not placement
-    //fct used if use of constraints possibly
-    def findTones(pred: List[Tone], curr: Chord, currm: Tone): List[Tone] = {
-      ???
+    def findTones(ch: ChInv, melN: Tone): List[Tone] = {
+      //TODO ? : for now, gives the nbNotes first notes of each chord
+      //later : take melody into account, esp. if nbNotes = 3 for Seventh, esp. if inversions
+      //also : sometimes use Inv1 or inversions of seventh
+      ch.c match {
+        case EmptyChord => (0 until nbNotes).toList map { y => O }
+        case Seventh(t) =>
+          (0 until nbNotes).toList map { y => ch.c(y + (ch.i.head.first % ch.c.tones.length)) }
+        case _ if (nbNotes != 4) =>
+          (0 until nbNotes).toList map { y => ch.c(y + (ch.i.head.first % ch.c.tones.length)) }
+        case Triad(t) => ch.i.head match {
+          case Fond | Inv3 => (0 until nbNotes).toList map { y => ch.c(y) }
+          //it should sound better like that
+          case Inv1 =>
+            List(1, 2, 3, 5) map { y => ch.c(y) } //or 1356
+          case Inv2 =>
+            List(2, 3, 4, 6) map { y => ch.c(y) }
+        }
+        case _ => ???
+      }
     }
 
-    //TODO : for now, gives the nbNotes first notes of each chord
-    //later : take melody into account, esp. if nbNotes = 3 for Seventh, esp. if inversions
     (chords zip mel) map { x =>
-      if (x._1.c != EmptyChord) {
-        (0 until nbNotes).toList map { y => x._1.c(y + (x._1.i.head.first % x._1.c.tones.length)) }
-      } else {
-        //if EmptyChord
-        (0 until nbNotes).toList map { y => O }
+      {
+        val re = findTones(x._1, x._2)
+        //if lower note has octave >= 1 : lower all
+        if (re.head.octave >= 1) {
+          re map { y => y.newTone(y.octave - re.head.octave, y.alter) }
+        } else {
+          re
+        }
       }
     }
   }
