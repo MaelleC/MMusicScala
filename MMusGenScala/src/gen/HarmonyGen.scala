@@ -16,12 +16,7 @@ case class HarmonyGen(melody: MusicalSegment) {
   //TODO : should be ChInv perhaps ?
 
   def harmonize(endF: ChiEnd): (MusicalSegment, ParallelSegment) = {
-    val flatMel = melody.flatAll
-    var melv: MusicalSegment = flatMel
-    if (flatMel.parDepth != 0) {
-      melv = getOneVoice(flatMel)
-    }
-    val mel = melv
+    val mel = getMel(melody)
 
     //TODO for now, 2 octaves below the lowest note of the melody 
     //TODO if melody too low : put it higher (of octaves) -> then : tell back to caller !!
@@ -35,9 +30,16 @@ case class HarmonyGen(melody: MusicalSegment) {
     val chosenTonesL = findAllTones(chosenChords, melT)
     val chosenNotes = tonesToNotes(chosenTonesL, mel.notes)
 
-    (mel, createPar(transpose(chosenNotes).tail)) //TODO : really need '.tail' ? 
-    //(see what tonesToNotes really gives : melody also ?)
+    (mel, createPar(transpose(chosenNotes)))
 
+  }
+  
+  def getMel(melody: MusicalSegment) : MusicalSegment = {
+    val flatMel = melody.flatAll
+    if (flatMel.parDepth != 0) {
+      getOneVoice(flatMel)
+    }
+    else flatMel
   }
 
   def getOneVoice(mel: MusicalSegment): MusicalSegment = {
@@ -131,6 +133,9 @@ case class HarmonyGen(melody: MusicalSegment) {
     findChord(endF, poss.reverse, Nil)
   }
 
+  /**
+   * returns a sequential list of parallel list of notes, without the melody
+   */
   def findAllTones(chords: List[ChInv], mel: List[Tone] /*, lowerBound: Tone*/ ): List[List[Tone]] = {
     //TODO : fct that put away some inversions from a list of chord
     // (ex : if V7+ -> I, I has to be Fond, can't be I6)
@@ -139,7 +144,9 @@ case class HarmonyGen(melody: MusicalSegment) {
       ???
     }
     
-    (chords zip mel) map {x => x._1.c.tones map {y => y(x._2.newTone(0, x._2.alter))}}
+    //TODO : for now, gives the 3 first notes of each chord
+    val minNotesAccChords = 3
+    (chords zip mel) map {x => (x._1.c.tones map {y => y(x._2.newTone(0, x._2.alter))}).take(minNotesAccChords)}
   }
 
   // from http://stackoverflow.com/questions

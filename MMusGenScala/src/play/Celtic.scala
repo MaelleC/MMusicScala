@@ -92,11 +92,13 @@ object Celtic extends App with MelodyWriter {
   val instrument = 0
   val minScale = Minor(A)
 
+  /*
   MelodyPlayer(
     Sequential(Nil)
       + (part withScale minScale),
     tempo,
     instrument = instrument)
+    */
 
   val d = HarmonyGen(compose(part1harm, part2harm, part3harm, 14))
   val e = compose(part1, part2, part3, 14) | d.harmonize(EndReal)._2
