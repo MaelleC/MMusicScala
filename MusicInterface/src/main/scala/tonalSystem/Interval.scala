@@ -1,5 +1,0 @@
-package tonalSystem
-
-trait Interval {
-
-}
