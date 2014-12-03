@@ -8,7 +8,7 @@ import chord._
 import segmentSystem.ClassPredicate._
 import scala.collection.mutable.ListBuffer
 
-case class HarmonyGen(melody: MusicalSegment) {
+case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm, perhaps change at the end
 
   val allChords: List[Chord] = List(Triad(I), Triad(II), Triad(III),
     Triad(IV), Triad(V), Triad(VI), Triad(VII), Seventh(V))
@@ -208,16 +208,16 @@ case class HarmonyGen(melody: MusicalSegment) {
   //-- then : define a trait of harmonyGenerizers !!
   def prevPoss(ci: ChI) /* extends PartialFunction[??]*/ : List[ChInv] = {
     ci match {
-      case ChInv(Triad(I(_, None)), i) if testInv(i) => HarmFct(V)
+      case ChInv(Triad(I(_, None)), i) if testInv(i) => ChInv(Seventh(V), List(Fond, Inv1, Inv2, Inv3)) :: HarmFct(V)
       case ChInv(Triad(II(_, None)), i) if testInv(i) => HarmFct(I)
-      //case ChInv(Triad(III(_, None)), i) if testInv(i) => ???
+      //case ChInv(Triad(III(_, None)), i) if testInv(i) => ??? //no need yet
       case ChInv(Triad(IV(_, None)), i) if testInv(i) => HarmFct(I)
       case ChInv(Triad(V(_, None)), i) if testInv(i) => HarmFct(I) ::: HarmFct(IV)
       case ChInv(Triad(VI(_, None)), i) if testInv(i) => getCiL(V, i)
       case ChInv(Triad(VII(_, None)), i) if testInv(i) => HarmFct(I) ::: HarmFct(IV)
-      //case ChInv(Triad(I(_, None)), i) if testInv(i, List(Inv2)) => ???
+      case ChInv(Triad(I(_, None)), i) if testInv(i, List(Inv2)) => HarmFct(IV) //TODO ? in fact : II in Inv 1 only
       case ChInv(Seventh(V(o, None)), i) if testInv(i) => prevPoss(ChInv(Triad(V(o, None)), List(Fond, Inv1)))
-      //TODO : add others
+      //TODO : add others ? (perhaps no need yet of nap and secondaryDoms)
       case EndReal => getCiL(I, List(Fond)) ::: getCiL(V, List(Fond))
       case EndMiddle => getCiL(I, List(Fond)) ::: getCiL(VI, List(Fond)) //perhaps Inv1 ok for VI ?
       case EndHalf => getCiL(V, List(Fond))
@@ -234,7 +234,6 @@ case class HarmonyGen(melody: MusicalSegment) {
     t match {
       case I(_, None) => List(I, VI).map(x => ChInv(Triad(x), List(Fond, Inv1)))
       case V(_, None) => ChInv(Triad(I), List(Inv2)) :: //I64
-        //ChInv(Seventh(V), List(Fond, Inv1, Inv2, Inv3)) :: //V7+ //TODO : before I only -> pb
         List(V, VII).map(x => ChInv(Triad(x), List(Fond, Inv1)))
       case IV(_, None) => List(IV, II).map(x => ChInv(Triad(x), List(Fond, Inv1)))
       case _ => Nil
