@@ -1,5 +1,6 @@
 MMusicScala
 ===========
+With Scala 2.11
 
 To use :
 
