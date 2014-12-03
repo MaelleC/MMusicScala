@@ -6,3 +6,6 @@ readmes/
 .project
 .settings/
 *~
+
+sudoku1.dat
+test/sudoku/*
