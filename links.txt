@@ -7,6 +7,9 @@ http://mozart.github.io/mozart-v1/doc-1.4.0/tutorial/index.html
 https://github.com/vtpittet/ScalaMusicGeneration
 https://github.com/MaelleC/MMusicScala
 
+https://github.com/regb/scabolic
+http://lamp.epfl.ch/files/content/sites/lamp/files/teaching/progfun/assignments/constraints.html
+
 deIntro p8 a http://www.comp.nus.edu.sg/~henz/projects/COMPOzE/
 
 //divers pas forcément utiles mais intéressants
@@ -28,3 +31,4 @@ http://commonmusic.sourceforge.net/
 
 --------
 http://stackoverflow.com/questions/12521065/running-sbt-results-in-com-typesafe-sbteclipsesbteclipse1-4-0-not-found
+http://grokbase.com/t/gg/simple-build-tool/12a9128vzb/sbt-multiple-main-classes-newbie-q

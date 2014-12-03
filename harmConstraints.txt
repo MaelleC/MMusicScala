@@ -207,3 +207,7 @@ IV : fa -> do, mi, sol, sib
 --------------------------------
 set TERM=msys
 http://stackoverflow.com/questions/11219266/how-to-fix-warning-terminal-is-not-fully-functional-error-in-command-console
+
+sh C:\Users\Maia\Documents\"Cours EPFL et Foyer"\SemProjMa3\Code\scabolic\cafesat
+
+sbt "run-main sudoku.Main sudoku2.dat "
