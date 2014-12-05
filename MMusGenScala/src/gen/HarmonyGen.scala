@@ -17,7 +17,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
   val nbChordNotes = 4; //TODO : for now, for basic not placement
 
-  def harmonize(endF: ChiEnd): (MusicalSegment, ParallelSegment) = {
+  def harmonize(endF: ChiEnd, useC: Boolean = false, compc: List[List[ChInv]] = Nil): (MusicalSegment, ParallelSegment) = {
     val mel = getMel(melody)
 
     //TODO for now, 2 octaves below the lowest note of the melody 
@@ -27,8 +27,19 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     val lowerBound = mel.notes.min(NoteOrdering) - 14 //risky if min is too low
 
     val melT = mel.notes map (_.tone)
-    val possibleChords: List[List[ChInv]] = melT map (getPossChords(_))
-    val chosenChords = findChords(possibleChords, endF)
+    val compcForEnd: Boolean = {
+      if (compc.isEmpty) false
+      else ??? //TODO : depends on form of compc : tells if compc has something for the end
+    }
+    val possibleChords: List[List[ChInv]] = {
+      if (compc.isEmpty) melT map (getPossChords(_))
+      else ??? //(melT zip compc) map getPossChordsCons(_) //TODO : depends on the form of compc
+    }
+
+    val chosenChords = {
+      if (!useC) findChords(possibleChords, endF)
+      else findChordsC(possibleChords, endF, (compc.isEmpty || !compcForEnd))
+    }
     val chosenTonesL = findAllTones(chosenChords, melT, nbChordNotes)
     val chosenNotes = tonesToNotes(chosenTonesL, mel.notes)
 
@@ -74,9 +85,14 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     }
   }
 
+  //find chords with formal constraints
+  //compc info is included in poss
+  def findChordsC(poss: List[List[ChInv]], endF: ChI, useChi: Boolean): List[ChInv] = ???
+
+  //find chords without formal constraints
   def findChords(poss: List[List[ChInv]], endF: ChI): List[ChInv] = {
 
-    def findChord(i: ChI, possC: List[List[ChInv]], buf: List[ChInv]): List[ChInv] = {
+    def findChord(endi: ChI, possC: List[List[ChInv]], buf: List[ChInv]): List[ChInv] = {
       if (possC.isEmpty) return buf
       else if (possC.head.isEmpty) {
         //bizarre note
@@ -93,11 +109,14 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
         }
       } else if (possC.head.head.c == EmptyChord) {
         //silent : give silent chord, but continues harmony for next
-        findChord(i, possC.tail, ChInv(EmptyChord, Nil) :: buf)
+        findChord(endi, possC.tail, ChInv(EmptyChord, Nil) :: buf)
       }
 
       val possChI = possC.head
-      val inter: List[ChInv] = intersectChInv(possChI, prevPoss(i))
+      val inter: List[ChInv] = {
+        if (endi == NoEnd) possChI
+        else intersectChInv(possChI, prevPoss(endi))
+      }
       if (inter.isEmpty) {
         //no possible chord is harmonically ok,
         // but there are possible chords (possC.head isn't empty)
@@ -221,6 +240,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
       case EndReal => getCiL(I, List(Fond)) ::: getCiL(V, List(Fond))
       case EndMiddle => getCiL(I, List(Fond)) ::: getCiL(VI, List(Fond)) //perhaps Inv1 ok for VI ?
       case EndHalf => getCiL(V, List(Fond))
+      case NoEnd => error("no NoEnd should go into prevPoss") //TODO : perhaps manage differently
       case _ => Nil
     }
   }

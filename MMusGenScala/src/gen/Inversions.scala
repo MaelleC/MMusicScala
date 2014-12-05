@@ -8,6 +8,7 @@ class ChiEnd extends ChI
 case object EndReal extends ChiEnd //want real complete cadence
 case object EndMiddle extends ChiEnd // deceptive cadence can be ok
 case object EndHalf extends ChiEnd
+case object NoEnd extends ChiEnd
 
 trait Inversion {
   val first: Int
