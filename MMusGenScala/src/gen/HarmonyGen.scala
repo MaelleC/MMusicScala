@@ -7,6 +7,7 @@ import scala.util.Random
 import chord._
 import segmentSystem.ClassPredicate._
 import scala.collection.mutable.ListBuffer
+import ConsImplicits._
 
 case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm, perhaps change at the end
 
@@ -17,7 +18,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
   val nbChordNotes = 4; //TODO : for now, for basic not placement
 
-  def harmonize(endF: ChiEnd, useC: Boolean = false, compc: List[List[ChInv]] = Nil): (MusicalSegment, ParallelSegment) = {
+  def harmonize(endF: ChiEnd, useC: Boolean = false, compcorig: List[(Int, List[CConstr])] = Nil): (MusicalSegment, ParallelSegment) = {
     val mel = getMel(melody)
 
     //TODO for now, 2 octaves below the lowest note of the melody 
@@ -27,13 +28,19 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     val lowerBound = mel.notes.min(NoteOrdering) - 14 //risky if min is too low
 
     val melT = mel.notes map (_.tone)
+    val compc: List[List[CConstr]] = {
+      compcorig match {
+        case Nil => Nil
+        case _ => getConsList(compcorig, melT.length)
+      }
+    }
     val compcForEnd: Boolean = {
       if (compc.isEmpty) false
-      else ??? //TODO : depends on form of compc : tells if compc has something for the end
+      else compc.last.head != NoCons
     }
     val possibleChords: List[List[ChInv]] = {
       if (compc.isEmpty) melT map (getPossChords(_))
-      else ??? //(melT zip compc) map getPossChordsCons(_) //TODO : depends on the form of compc
+      else (melT zip compc) map (getPossChordsCons(_))
     }
 
     val chosenChords = {
@@ -52,6 +59,25 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     if (flatMel.parDepth != 0) {
       getOneVoice(flatMel)
     } else flatMel
+  }
+
+  def getConsList(ori: List[(Int, List[CConstr])], melLen: Int): List[List[CConstr]] = {
+    def noConsL(i1: Int, i2: Int): List[List[CConstr]] = (List.range(i1, i2) map { x => List(NoCons) })
+    def getConsList0(buf: List[List[CConstr]], o: List[(Int, List[CConstr])]): List[List[CConstr]] = {
+      if (o.isEmpty) {
+        if (buf.length != melLen) {
+          buf ::: noConsL(buf.length, melLen)
+        } else {
+          buf
+        }
+      } else ???
+    }
+
+    val indices = ori map { x => x._1 }
+    if (indices.max >= melLen) error("Indices should be less than " + melLen + " (which is the length of the melody).")
+    else if (indices.min < 0) error("Indices should be greater or equal to zero.")
+    //TODO : in increasing order ?, no duplicates ? drop them in getConsList0 and give a warning
+    getConsList0(Nil, ori)
   }
 
   def getOneVoice(mel: MusicalSegment): MusicalSegment = {
@@ -84,6 +110,8 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
       case _ => (allChords.filter(_.contains(t))).map(x => ChInv(x, possInv(x)))
     }
   }
+
+  def getPossChordsCons(cc: (Tone, List[CConstr])): List[ChInv] = ???
 
   //find chords with formal constraints
   //compc info is included in poss
@@ -178,7 +206,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
           case Inv2 =>
             List(2, 3, 4, 6) map { y => ch.c(y) }
         }
-        case _ => ???
+        case _ => (0 until nbNotes).toList map { y => O } //TODO : something else ?
       }
     }
 
