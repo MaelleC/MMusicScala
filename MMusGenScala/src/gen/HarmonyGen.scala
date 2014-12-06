@@ -65,12 +65,12 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     def noConsL(i1: Int, i2: Int): List[List[CConstr]] = (List.range(i1, i2) map { x => List(NoCons) })
     def getConsList0(buf: List[List[CConstr]], o: List[(Int, List[CConstr])]): List[List[CConstr]] = {
       if (o.isEmpty) {
-        if (buf.length != melLen) {
-          buf ::: noConsL(buf.length, melLen)
-        } else {
-          buf
-        }
-      } else ???
+        if (buf.length != melLen) buf ::: noConsL(buf.length, melLen)
+        else buf
+      } else {
+        if (o.head._1 < buf.length) getConsList0(buf, o.tail)
+        else getConsList0(buf ::: noConsL(buf.length, o.head._1) ::: List(o.head._2), o.tail)
+      }
     }
 
     val indices = ori map { x => x._1 }
