@@ -7,10 +7,9 @@ import scala.util.Random
 import chord._
 import segmentSystem.ClassPredicate._
 import scala.collection.mutable.ListBuffer
-import ConsImplicits._
+import Chord._
 
 case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm, perhaps change at the end
-
   val allChords: List[Chord] = List(Triad(I), Triad(II), Triad(III),
     Triad(IV), Triad(V), Triad(VI), Triad(VII), Seventh(V))
   //TODO add all what is in the grammar
@@ -62,6 +61,9 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
   }
 
   def getConsList(ori: List[(Int, List[CConstr])], melLen: Int): List[List[CConstr]] = {
+    //!!!!!!!!!!
+    //TODO : verify that in possibleChords !!
+    //also : put in prevPoss things for all chords of possibleChords !!!
     def noConsL(i1: Int, i2: Int): List[List[CConstr]] = (List.range(i1, i2) map { x => List(NoCons) })
     def getConsList0(buf: List[List[CConstr]], o: List[(Int, List[CConstr])]): List[List[CConstr]] = {
       if (o.isEmpty) {

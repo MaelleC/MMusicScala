@@ -5,16 +5,19 @@ import segmentSystem._
 import gen._
 import chord._
 import tonalSystem.Tone._
+import gen.Chord._
 
 class ComposerInputTest extends FunSuite {
 
   test("testCorrectInput") {
     val d = HarmonyGen(EmptySeq)
     val melLen = 12
-    val comp = List((1, List(ChInv(Triad(I), List(Fond)))),
-      (3, List(ChInv(Triad(II), List(Fond)))),
-      (8, List(ChInv(Triad(III), List(Fond)))),
-      (9, List(ChInv(Triad(IV), List(Fond)))))
+
+    //implicit conversion
+    val comp: List[(Int, List[CConstr])] = List((1, List(Triad(I))),
+      (3, List(Triad(II))),
+      (8, List(Triad(III))),
+      (9, List(Triad(IV))))
 
     val compafter = d.getConsList(comp, melLen)
 

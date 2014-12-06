@@ -2,19 +2,19 @@ package gen
 
 import chord._
 
-//TODO : does not work
-//  val b : List[(Int, List[CConstr])] = (1, List(ChInv(Triad(I), List(Fond)))) :: Nil
-//  val c : List[(Int, List[CConstr])] = (1, List(Triad(I))) :: Nil
-object ConsImplicits {
-  implicit def Chord2ChInv(c: Chord): CConstr = {
+object Chord {
+  implicit def Chord2CConstr(c: Chord): CConstr = {
     c match {
       case Triad(x) => ChInv(c, List(Fond, Inv1, Inv2))
       case Seventh(x) => ChInv(c, List(Fond, Inv1, Inv2, Inv3))
       case _ => ChInv(c, List(Fond, Inv1, Inv2)) //TODO : see for other what to put
     }
-
   }
 }
+
+//object Chord {
+//  implicit def ctoint(c : Chord) : Int = 1
+//}
 
 trait CConstr
 case object NoCons extends CConstr
