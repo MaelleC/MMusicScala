@@ -44,6 +44,9 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
       else (melT zip compc) map (getPossChordsCons(_))
 
     }
+    
+    //TODO : for Triad(I) : separate in two ChInvs : One with Fond and In1, one with Inv2
+    //and change prevPoss
 
     val chosenChords = {
       if (!useC) findChords(possibleChords, endF)
@@ -122,23 +125,34 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     }
   }
 
-  def getPossChordsCons(cc: (Tone, List[CConstr])): List[ChInv] = ???
+  def getPossChordsCons(cc: (Tone, List[CConstr])): List[ChInv] = {
+    def mergeChInv(p : List[ChInv], c : List[CConstr]) : List[ChInv] = {
+      if (c.head == NoCons) p
+      else {
+        for {i <- p; j <- c if i.canIntersect(j)} 
+          yield i.intersect(j)
+      }
+      
+    }
+    mergeChInv(getPossChords(cc._1), cc._2)
+  }
 
   //find chords with formal constraints
   //compc info is included in poss
   def findChordsC(poss: List[List[ChInv]], endF: ChI, useChi: Boolean): Option[List[ChInv]] = {
 
+    //TODO : should have one variable for each possible inversion at least for Triad(I), 
+    //otherwise : problem for prevPoss when diff (do the thing in "harmonize")
+
     val consVarsCh: List[List[(ChInv, Formula)]] = poss map { x => x map { y => (y, boolVar()) } }
     val onlyOneChInv = ((consVarsCh map { x => x map { y => y._2 } }) map { x => Constraints.exactlyOne(x) }).flatten
 
     def possPairs(c1: List[(ChInv, Formula)], c2: List[(ChInv, Formula)]): List[(Formula, Formula)] = {
-      (c1 map { x => mergeP(c1, prevPossPair(x)) }).flatten
+      (c2 map { x => mergeP(c1, (prevPoss(x._1), x._2)) }).flatten
     }
-    def prevPossPair(p: (ChInv, Formula)): List[ChInv] = {
-      ???
-    }
-    def mergeP(prev: List[(ChInv, Formula)], poss: List[ChInv]): List[(Formula, Formula)] = {
-      ???
+    def mergeP(prev: List[(ChInv, Formula)], poss: (List[ChInv], Formula)): List[(Formula, Formula)] = {
+      for (i <- poss._1; j <- prev if j == i) yield (j._2, poss._2)
+     //TODO test if really ok the equality
     }
 
     val pairsFormulas = (consVarsCh zip consVarsCh.tail) map { x => possPairs(x._1, x._2) }
