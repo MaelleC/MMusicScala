@@ -128,8 +128,8 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
   //compc info is included in poss
   def findChordsC(poss: List[List[ChInv]], endF: ChI, useChi: Boolean): Option[List[ChInv]] = {
 
-    val consVars: List[List[(ChInv, Formula)]] = poss map { x => x map { y => (y, boolVar()) } }
-    val onlyOneChInv = ((consVars map { x => x map { y => y._2 } }) map { x => Constraints.exactlyOne(x) }).flatten
+    val consVarsCh: List[List[(ChInv, Formula)]] = poss map { x => x map { y => (y, boolVar()) } }
+    val onlyOneChInv = ((consVarsCh map { x => x map { y => y._2 } }) map { x => Constraints.exactlyOne(x) }).flatten
 
     def possPairs(c1: List[(ChInv, Formula)], c2: List[(ChInv, Formula)]): List[(Formula, Formula)] = {
       (c1 map { x => mergeP(c1, prevPossPair(x)) }).flatten
@@ -141,7 +141,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
       ???
     }
 
-    val pairsFormulas = (consVars zip consVars.tail) map { x => possPairs(x._1, x._2) }
+    val pairsFormulas = (consVarsCh zip consVarsCh.tail) map { x => possPairs(x._1, x._2) }
 
     val pairVars = pairsFormulas map { x => x map { y => boolVar() } }
     val onlyOnePairChInv = ((pairsFormulas zip pairVars) map { x => Constraints.exactlyOnePair(x._1, x._2) }).flatten
@@ -149,9 +149,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     val allConstraints = onlyOneChInv ++ onlyOnePairChInv
     solveForSatisfiability(and(allConstraints: _*)) match {
       case None => None
-      //TODO
-      //Some(vars.map(row => row.map(vs => vs.indexWhere(v => model(v)) + 1)))
-      case Some(result) => None
+      case Some(result) => Some(consVarsCh map { x => (x.filter { y => result(y._2) }).head._1 })
     }
   }
 
