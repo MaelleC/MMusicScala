@@ -8,6 +8,7 @@ import chord._
 import segmentSystem.ClassPredicate._
 import scala.collection.mutable.ListBuffer
 import Chord._
+import cafesat.api.API._
 
 case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm, perhaps change at the end
   val allChords: List[Chord] = List(Triad(I), Triad(II), Triad(III),
@@ -15,7 +16,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
   //TODO add all what is in the grammar
   //TODO : should be ChInv perhaps ?
 
-  val nbChordNotes = 4; //TODO : for now, for basic not placement
+  val nbChordNotes = 4; //TODO : for now, for basic note placement
 
   def harmonize(endF: ChiEnd, useC: Boolean = false, compcorig: List[(Int, List[CConstr])] = Nil): (MusicalSegment, ParallelSegment) = {
     val mel = getMel(melody)
@@ -39,7 +40,9 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     }
     val possibleChords: List[List[ChInv]] = {
       if (compc.isEmpty) melT map (getPossChords(_))
+      //TODO perhaps different when several only one chord ok from composer
       else (melT zip compc) map (getPossChordsCons(_))
+
     }
 
     val chosenChords = {
@@ -103,7 +106,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
         case _ if (c.tones.size == 3) => List(Fond, Inv1, Inv2)
         case _ if (c.tones.size == 4) => List(Fond, Inv1, Inv2, Inv3)
-        case _ => Nil // TODO : perhaps not the best to do ? normally, nothing will go there
+        case _ => List(Fond) // TODO : perhaps not the best to do ? normally, nothing will go there
       }
     }
 
@@ -117,7 +120,18 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
   //find chords with formal constraints
   //compc info is included in poss
-  def findChordsC(poss: List[List[ChInv]], endF: ChI, useChi: Boolean): List[ChInv] = ???
+  def findChordsC(poss: List[List[ChInv]], endF: ChI, useChi: Boolean): List[ChInv] = {
+
+    val consVars: List[List[(ChInv, Formula)]] = poss map { x => x map { y => (y, boolVar()) } }
+    val onlyOneCons = (consVars map { x => x map { y => y._2 } }) map { x => Constraints.exactlyOne(x) }
+
+    def possPairs(c1: List[(ChInv, Formula)], c2: List[(ChInv, Formula)]): (List[(Formula, Formula)], List[Formula]) = {
+
+      ???
+    }
+
+    ???
+  }
 
   //find chords without formal constraints
   def findChords(poss: List[List[ChInv]], endF: ChI): List[ChInv] = {
