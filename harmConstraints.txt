@@ -211,3 +211,6 @@ http://stackoverflow.com/questions/11219266/how-to-fix-warning-terminal-is-not-f
 sh C:\Users\Maia\Documents\"Cours EPFL et Foyer"\SemProjMa3\Code\scabolic\cafesat
 
 sbt "run-main sudoku.Main sudoku2.dat "
+
+http://www.automatic-pilot.com/midifile.html
+https://docs.oracle.com/javase/7/docs/api/javax/sound/midi/MidiSystem.html

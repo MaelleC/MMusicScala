@@ -125,8 +125,13 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     val consVars: List[List[(ChInv, Formula)]] = poss map { x => x map { y => (y, boolVar()) } }
     val onlyOneCons = (consVars map { x => x map { y => y._2 } }) map { x => Constraints.exactlyOne(x) }
 
-    def possPairs(c1: List[(ChInv, Formula)], c2: List[(ChInv, Formula)]): (List[(Formula, Formula)], List[Formula]) = {
-
+    def possPairs(c1: List[(ChInv, Formula)], c2: List[(ChInv, Formula)]): List[(Formula, Formula)] = {
+      (c1 map { x => mergeP(c1, prevPossPair(x)) }).flatten
+    }
+    def prevPossPair(p: (ChInv, Formula)): List[ChInv] = {
+      ???
+    }
+    def mergeP(prev: List[(ChInv, Formula)], poss: List[ChInv]): List[(Formula, Formula)] = {
       ???
     }
 

@@ -1,0 +1,14 @@
+
+//do that in MelodyPlayer at the end of play
+
+import java.io._
+//http://www.automatic-pilot.com/midifile.html
+    try{
+      val f :File = new File("midifile.mid");
+      MidiSystem.write(midiSequence, 1, f)
+    }
+    catch{
+      case ex: IOException => {
+            println("IO Exception")
+         }
+    }
