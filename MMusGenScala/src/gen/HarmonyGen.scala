@@ -47,7 +47,13 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
     val chosenChords = {
       if (!useC) findChords(possibleChords, endF)
-      else findChordsC(possibleChords, endF, (compc.isEmpty || !compcForEnd))
+      else findChordsC(possibleChords, endF, (compc.isEmpty || !compcForEnd)) match {
+        case Some(possC) => possC
+        case None => { //TODO : differently ?
+          println("could not solve with constraints, try without, but not all composer constraints will be satisfied.")
+          findChords(possibleChords, endF)
+        }
+      }
     }
     val chosenTonesL = findAllTones(chosenChords, melT, nbChordNotes)
     val chosenNotes = tonesToNotes(chosenTonesL, mel.notes)
@@ -120,10 +126,10 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
   //find chords with formal constraints
   //compc info is included in poss
-  def findChordsC(poss: List[List[ChInv]], endF: ChI, useChi: Boolean): List[ChInv] = {
+  def findChordsC(poss: List[List[ChInv]], endF: ChI, useChi: Boolean): Option[List[ChInv]] = {
 
     val consVars: List[List[(ChInv, Formula)]] = poss map { x => x map { y => (y, boolVar()) } }
-    val onlyOneCons = (consVars map { x => x map { y => y._2 } }) map { x => Constraints.exactlyOne(x) }
+    val onlyOneChInv = ((consVars map { x => x map { y => y._2 } }) map { x => Constraints.exactlyOne(x) }).flatten
 
     def possPairs(c1: List[(ChInv, Formula)], c2: List[(ChInv, Formula)]): List[(Formula, Formula)] = {
       (c1 map { x => mergeP(c1, prevPossPair(x)) }).flatten
@@ -135,7 +141,18 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
       ???
     }
 
-    ???
+    val pairsFormulas = (consVars zip consVars.tail) map { x => possPairs(x._1, x._2) }
+
+    val pairVars = pairsFormulas map { x => x map { y => boolVar() } }
+    val onlyOnePairChInv = ((pairsFormulas zip pairVars) map { x => Constraints.exactlyOnePair(x._1, x._2) }).flatten
+
+    val allConstraints = onlyOneChInv ++ onlyOnePairChInv
+    solveForSatisfiability(and(allConstraints: _*)) match {
+      case None => None
+      //TODO
+      //Some(vars.map(row => row.map(vs => vs.indexWhere(v => model(v)) + 1)))
+      case Some(result) => None
+    }
   }
 
   //find chords without formal constraints
