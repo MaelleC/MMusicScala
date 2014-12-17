@@ -19,9 +19,9 @@ object Chord {
 trait CConstr
 case object NoCons extends CConstr
 
-class ChI
+//class ChI
 
-case class ChInv(c: Chord, i: Set[Inversion]) extends ChI with CConstr {
+case class ChInv(c: Chord, i: Set[Inversion]) extends /*ChI with*/ CConstr {
   def canIntersect(that: CConstr): Boolean = {
     that match {
       case NoCons => false
@@ -40,7 +40,7 @@ case class ChInv(c: Chord, i: Set[Inversion]) extends ChI with CConstr {
   }
 }
 
-class ChiEnd extends ChI with CConstr
+class ChiEnd extends /*ChI with*/ CConstr
 case object EndReal extends ChiEnd //want real complete cadence
 case object EndMiddle extends ChiEnd // deceptive cadence can be ok
 case object EndHalf extends ChiEnd
