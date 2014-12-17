@@ -171,9 +171,6 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     def intersectChInv(a: List[ChInv], b: List[ChInv]): List[ChInv] = {
       val ca = a.map(_.c)
       val cb = b.map(_.c)
-
-      //!!!! TODO : need equality of chords modulo octave of associated tone
-      //	have put hashcode and equals methods in chord, hope this will work -> need to test
       val cint = ca.intersect(cb)
 
       cint map { x => ChInv(x, (a.find(c => c.c == x).get.i).intersect(b.find(c => c.c == x).get.i)) }
