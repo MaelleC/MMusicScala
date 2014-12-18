@@ -139,7 +139,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
   //find chords with formal constraints
   //compc info is included in poss
-  def findChordsC(poss: List[List[ChInv]], endF: ChiEnd, useChi: Boolean): Option[List[ChInv]] = {
+  def findChordsC(poss: List[List[ChInv]], endF: HavePrev, useChi: Boolean): Option[List[ChInv]] = {
 
     //TODO : should have one variable for each possible inversion at least for Triad(I), 
     //otherwise : problem for prevPoss when diff (do the thing in "harmonize")
@@ -169,14 +169,14 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
   }
 
   //find chords without formal constraints
-  def findChords(poss: List[List[ChInv]], endF: ChiEnd): List[ChInv] = {
-    
-    def findEnd(endi: ChiEnd, possC: List[List[ChInv]]): List[ChInv] = {
-      findChord(, possC.tail, )
-      //TOD
-    }
+  def findChords(poss: List[List[ChInv]], endF: HavePrev): List[ChInv] = {
 
-    def findChord(next: ChInv, possC: List[List[ChInv]], buf: List[ChInv]): List[ChInv] = {
+    //    def findEnd(endi: ChiEnd, possC: List[List[ChInv]]): List[ChInv] = {
+    //      findChord(, possC.tail, )
+    //      //TOD
+    //    }
+
+    def findChord(next: HavePrev, possC: List[List[ChInv]], buf: List[ChInv]): List[ChInv] = {
       if (possC.isEmpty) return buf
       else if (possC.head.isEmpty) {
         //bizarre note
@@ -231,8 +231,8 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
       cint map { x => ChInv(x, (a.find(c => c.c == x).get.i).intersect(b.find(c => c.c == x).get.i)) }
 
     }
-    findEnd(endF, poss.reverse)
-    //findChord(endF, poss.reverse, Nil)
+    //findEnd(endF, poss.reverse)
+    findChord(endF, poss.reverse, Nil)
   }
 
   /**
@@ -316,7 +316,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
   //TODO : way to give a list of possible chords from a grammar (for allPoss of HarmonyGen ?)
   //-- then : define a trait of harmonyGenerizers !!
-  def prevPoss(ci: ChInv) /* extends PartialFunction[??]*/ : List[ChInv] = {
+  def prevPoss(ci: HavePrev) /* extends PartialFunction[??]*/ : List[ChInv] = {
     ci match {
       case ChInv(Triad(I(_, None)), i) if testInv(i) => ChInv(Seventh(V), Set(Fond, Inv1, Inv2, Inv3)) :: HarmFct(V)
       case ChInv(Triad(II(_, None)), i) if testInv(i) => HarmFct(I)
@@ -328,16 +328,11 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
       case ChInv(Triad(I(_, None)), i) if testInv(i, Set(Inv2)) => HarmFct(IV) //TODO ? in fact : II in Inv 1 only
       case ChInv(Seventh(V(o, None)), i) if testInv(i) => prevPoss(ChInv(Triad(V(o, None)), Set(Fond, Inv1)))
       //TODO : add others ? (perhaps no need yet of nap and secondaryDoms)
-      case _ => Nil
-    }
-  }
-
-  def endsConversion(ce: ChiEnd): List[ChInv] = {
-    ce match {
       case EndReal => getCiL(I, Set(Fond)) ::: getCiL(V, Set(Fond))
       case EndMiddle => getCiL(I, Set(Fond)) ::: getCiL(VI, Set(Fond, Inv1))
       case EndHalf => getCiL(V, Set(Fond))
-      case NoEnd => error("no NoEnd should go into endsConversion") //TODO : perhaps manage differently
+      case NoEnd => error("no NoEnd should go into prevPoss") //TODO : perhaps manage differently
+      case _ => Nil
     }
   }
 

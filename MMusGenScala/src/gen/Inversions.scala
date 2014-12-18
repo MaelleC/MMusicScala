@@ -19,9 +19,9 @@ object Chord {
 trait CConstr
 case object NoCons extends CConstr
 
-//class ChI
+trait HavePrev
 
-case class ChInv(c: Chord, i: Set[Inversion]) extends /*ChI with*/ CConstr {
+case class ChInv(c: Chord, i: Set[Inversion]) extends HavePrev with CConstr {
   def canIntersect(that: CConstr): Boolean = {
     that match {
       case NoCons => false
@@ -30,9 +30,9 @@ case class ChInv(c: Chord, i: Set[Inversion]) extends /*ChI with*/ CConstr {
   }
   def intersect(that: CConstr): ChInv = {
     that match {
-      case NoCons => sys.error("no NoCons should be given to this function")
+      case NoCons => error("no NoCons should be given to this function")
       case ChInv(c1, i1) => if (c1 != c) {
-        sys.error("should use canIntersect before using intersect")
+        error("should use canIntersect before using intersect")
       } else {
         ChInv(c, i.intersect(i1))
       }
@@ -40,7 +40,7 @@ case class ChInv(c: Chord, i: Set[Inversion]) extends /*ChI with*/ CConstr {
   }
 }
 
-class ChiEnd extends /*ChI with*/ CConstr
+class ChiEnd extends HavePrev with CConstr
 case object EndReal extends ChiEnd //want real complete cadence
 case object EndMiddle extends ChiEnd // deceptive cadence can be ok
 case object EndHalf extends ChiEnd
