@@ -149,14 +149,25 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
   //compc info is included in poss
   def findChordsC(poss: List[List[ChInv]], endF: HavePrev, useChi: Boolean): Option[List[ChInv]] = {
 
-    //TODO : should have one variable for each possible inversion at least for Triad(I), 
-    //otherwise : problem for prevPoss when diff (do the thing in "harmonize")
-
     val consVarsCh: List[List[(ChInv, Formula)]] = poss map { x => x map { y => (y, boolVar()) } }
     val onlyOneChInv = ((consVarsCh map { x => x map { y => y._2 } }) map { x => Constraints.exactlyOne(x) }).flatten
 
     def possPairs(c1: List[(ChInv, Formula)], c2: List[(ChInv, Formula)]): List[(Formula, Formula)] = {
-      (c2 map { x => mergeP(c1, (prevPoss(x._1), x._2)) }).flatten
+      (c2 map { x =>
+        {
+          x._1 match {
+            // takes care when c2 contains only EmptyChord
+            case ChInv(EmptyChord, _) => c1 map { y => (y._2, x._2) }
+            // takes care when c1 contains only EmptyChord, and c2 not
+            case _ => {
+              c1 match {
+                case (ChInv(EmptyChord, _), f) :: t => List((f, x._2))
+                case _ => mergeP(c1, (prevPoss(x._1), x._2))
+              }
+            }
+          }
+        }
+      }).flatten
     }
     def mergeP(prev: List[(ChInv, Formula)], poss: (List[ChInv], Formula)): List[(Formula, Formula)] = {
       for (i <- poss._1; j <- prev if j._1 == i) yield (j._2, poss._2)

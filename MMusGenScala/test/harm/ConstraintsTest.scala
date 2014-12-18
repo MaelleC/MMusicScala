@@ -21,6 +21,10 @@ class ConstraintsTest extends FunSuite {
     val d2 = or(cl(0)) :: or(cl(1)) :: d
     assert(solveForSatisfiability(and(d2: _*)) == None)
 
+    // test when only one already
+    val e = Constraints.exactlyOne(List(boolVar()))
+    assert(solveForSatisfiability(and(e: _*)) != None)
+
   }
 
   test("exactlyOnePair") {
@@ -45,6 +49,12 @@ class ConstraintsTest extends FunSuite {
 
     assert(solveForSatisfiability(and(dCToP: _*)) == None)
     assert(solveForSatisfiability(and(dPToC: _*)) == None)
+
+    //when only one pair possible
+    val c1 = List.range(0, 2) map { _ => boolVar() }
+    val cp1 = List((c1(0), c1(1)))
+    val e = Constraints.exactlyOnePair(cp1, List(boolVar()))
+    assert(solveForSatisfiability(and(e: _*)) != None)
 
   }
 }
