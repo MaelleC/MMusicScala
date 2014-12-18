@@ -48,17 +48,23 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     //TODO : for Triad(I) : separate in two ChInvs : One with Fond and In1, one with Inv2
     //and change prevPoss
     //perhaps always put only one inversion in each chInv ?
-
+    val seed = Random.nextInt()
     val chosenChords = {
-      if (!useC) findChords(possibleChords, endF)
+      if (!useC) findChords(possibleChords, endF, seed)
       else findChordsC(possibleChords, endF, (compc.isEmpty || !compcForEnd)) match {
         case Some(possC) => possC
-        case None => { //TODO : differently ?
+        case None => {
+          //TODO : differently ? ex tell which constraint is not ok, perhaps;
+          //see if cafesat can tell where is contradiction
           println("could not solve with constraints, try without, but not all composer constraints will be satisfied.")
-          findChords(possibleChords, endF)
+          findChords(possibleChords, endF, seed)
         }
       }
     }
+
+    println("Chosen chords (with their inversion and index in list) : ")
+    println(chosenChords.zipWithIndex)
+
     val chosenTonesL = findAllTones(chosenChords, melT, nbChordNotes)
     val chosenNotes = tonesToNotes(chosenTonesL, mel.notes)
 
@@ -147,7 +153,8 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
   //find chords with formal constraints
   //compc info is included in poss
-  def findChordsC(poss: List[List[ChInv]], endF: HavePrev, useChi: Boolean): Option[List[ChInv]] = {
+  def findChordsC(poss: List[List[ChInv]], endF: HavePrev, useEnd: Boolean): Option[List[ChInv]] = {
+    //use end !!!
 
     val consVarsCh: List[List[(ChInv, Formula)]] = poss map { x => x map { y => (y, boolVar()) } }
     val onlyOneChInv = ((consVarsCh map { x => x map { y => y._2 } }) map { x => Constraints.exactlyOne(x) }).flatten
@@ -186,8 +193,9 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
   }
 
   //find chords without formal constraints
-  def findChords(poss: List[List[ChInv]], endF: HavePrev): List[ChInv] = {
-
+  def findChords(poss: List[List[ChInv]], endF: HavePrev, seed: Int): List[ChInv] = {
+    println("Seed : " + seed)
+    val rand = new Random(seed)
     //    def findEnd(endi: ChiEnd, possC: List[List[ChInv]]): List[ChInv] = {
     //      findChord(, possC.tail, )
     //      //TOD
@@ -228,13 +236,13 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
         } else {
           //take a possible chord, even if harmonically not ok
 
-          val nextC = (new Random(78)).shuffle(possChI).head
+          val nextC = rand.shuffle(possChI).head
           findChord(nextC, possC.tail, nextC :: buf)
         }
 
       } else {
         //normal case : random between ok chords
-        val nextC = Random.shuffle(inter).head
+        val nextC = rand.shuffle(inter).head
         findChord(nextC, possC.tail, nextC :: buf)
       }
 
