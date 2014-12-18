@@ -108,86 +108,86 @@ class Harm extends FunSuite with MelodyWriter {
   val tr = d.transpose(chosenNotes)
   val end = d.createPar(tr)
 
-  test("possChords") {
-    val tpo = { O + I + II + III + IV + V + VI + VII }
-    val poss = (tpo.notes map (_.tone)) map (d.getPossChords(_))
-    val exp = List(List(ChInv(EmptyChord, Set.empty)),
-      List(ChInv(Triad(I(0, None)), Set(Fond, Inv1, Inv2)),
-        ChInv(Triad(IV(0, None)), Set(Fond, Inv1)),
-        ChInv(Triad(VI(0, None)), Set(Fond, Inv1))),
-      List(ChInv(Triad(II(0, None)), Set(Fond, Inv1)),
-        ChInv(Triad(V(0, None)), Set(Fond, Inv1)),
-        ChInv(Triad(VII(0, None)), Set(Fond, Inv1)),
-        ChInv(Seventh(V(0, None)), Set(Fond, Inv1, Inv2, Inv3))),
-      List(ChInv(Triad(I(0, None)), Set(Fond, Inv1, Inv2)),
-        ChInv(Triad(III(0, None)), Set(Fond, Inv1)),
-        ChInv(Triad(VI(0, None)), Set(Fond, Inv1))),
-      List(ChInv(Triad(II(0, None)), Set(Fond, Inv1)),
-        ChInv(Triad(IV(0, None)), Set(Fond, Inv1)),
-        ChInv(Triad(VII(0, None)), Set(Fond, Inv1)),
-        ChInv(Seventh(V(0, None)), Set(Fond, Inv1, Inv2, Inv3))),
-      List(ChInv(Triad(I(0, None)), Set(Fond, Inv1, Inv2)),
-        ChInv(Triad(III(0, None)), Set(Fond, Inv1)),
-        ChInv(Triad(V(0, None)), Set(Fond, Inv1)),
-        ChInv(Seventh(V(0, None)), Set(Fond, Inv1, Inv2, Inv3))),
-      List(ChInv(Triad(II(0, None)), Set(Fond, Inv1)),
-        ChInv(Triad(IV(0, None)), Set(Fond, Inv1)),
-        ChInv(Triad(VI(0, None)), Set(Fond, Inv1))),
-      List(ChInv(Triad(III(0, None)), Set(Fond, Inv1)),
-        ChInv(Triad(V(0, None)), Set(Fond, Inv1)),
-        ChInv(Triad(VII(0, None)), Set(Fond, Inv1)),
-        ChInv(Seventh(V(0, None)), Set(Fond, Inv1, Inv2, Inv3))))
-    assert(poss.head == List(ChInv(EmptyChord, Set.empty)))
-    assert(poss == exp)
-  }
+//  test("possChords") {
+//    val tpo = { O + I + II + III + IV + V + VI + VII }
+//    val poss = (tpo.notes map (_.tone)) map (d.getPossChords(_))
+//    val exp = List(List(ChInv(EmptyChord, Set.empty)),
+//      List(ChInv(Triad(I(0, None)), Set(Fond, Inv1, Inv2)),
+//        ChInv(Triad(IV(0, None)), Set(Fond, Inv1)),
+//        ChInv(Triad(VI(0, None)), Set(Fond, Inv1))),
+//      List(ChInv(Triad(II(0, None)), Set(Fond, Inv1)),
+//        ChInv(Triad(V(0, None)), Set(Fond, Inv1)),
+//        ChInv(Triad(VII(0, None)), Set(Fond, Inv1)),
+//        ChInv(Seventh(V(0, None)), Set(Fond, Inv1, Inv2, Inv3))),
+//      List(ChInv(Triad(I(0, None)), Set(Fond, Inv1, Inv2)),
+//        ChInv(Triad(III(0, None)), Set(Fond, Inv1)),
+//        ChInv(Triad(VI(0, None)), Set(Fond, Inv1))),
+//      List(ChInv(Triad(II(0, None)), Set(Fond, Inv1)),
+//        ChInv(Triad(IV(0, None)), Set(Fond, Inv1)),
+//        ChInv(Triad(VII(0, None)), Set(Fond, Inv1)),
+//        ChInv(Seventh(V(0, None)), Set(Fond, Inv1, Inv2, Inv3))),
+//      List(ChInv(Triad(I(0, None)), Set(Fond, Inv1, Inv2)),
+//        ChInv(Triad(III(0, None)), Set(Fond, Inv1)),
+//        ChInv(Triad(V(0, None)), Set(Fond, Inv1)),
+//        ChInv(Seventh(V(0, None)), Set(Fond, Inv1, Inv2, Inv3))),
+//      List(ChInv(Triad(II(0, None)), Set(Fond, Inv1)),
+//        ChInv(Triad(IV(0, None)), Set(Fond, Inv1)),
+//        ChInv(Triad(VI(0, None)), Set(Fond, Inv1))),
+//      List(ChInv(Triad(III(0, None)), Set(Fond, Inv1)),
+//        ChInv(Triad(V(0, None)), Set(Fond, Inv1)),
+//        ChInv(Triad(VII(0, None)), Set(Fond, Inv1)),
+//        ChInv(Seventh(V(0, None)), Set(Fond, Inv1, Inv2, Inv3))))
+//    assert(poss.head == List(ChInv(EmptyChord, Set.empty)))
+//    assert(poss == exp)
+//  }
 
-  test("findAllTones fond") {
-    val chosenCh = List(ChInv(EmptyChord, Set()),
-      ChInv(Triad(I(0, None)), Set(Fond)),
-      ChInv(Triad(II(0, None)), Set(Fond)),
-      ChInv(Triad(III(0, None)), Set(Fond)),
-      ChInv(Triad(IV(0, None)), Set(Fond)),
-      ChInv(Triad(V(0, None)), Set(Fond)),
-      ChInv(Triad(VI(0, None)), Set(Fond)),
-      ChInv(Triad(VII(0, None)), Set(Fond)),
-      ChInv(Seventh(V(0, None)), Set(Fond)))
-    val at1 = d.findAllTones(chosenCh, melT ::: List(V), 4)
-    val exp = List(
-      List(O, O, O, O),
-      List(I(0, None), III(0, None), V(0, None), I(1, None)),
-      List(II(0, None), IV(0, None), VI(0, None), II(1, None)),
-      List(III(0, None), V(0, None), VII(0, None), III(1, None)),
-      List(IV(0, None), VI(0, None), I(1, None), IV(1, None)),
-      List(V(0, None), VII(0, None), II(1, None), V(1, None)),
-      List(VI(0, None), I(1, None), III(1, None), VI(1, None)),
-      List(VII(0, None), II(1, None), IV(1, None), VII(1, None)),
-      List(V(0, None), VII(0, None), II(1, None), IV(1, None)))
-    assert(at1 == exp)
-  }
+//  test("findAllTones fond") {
+//    val chosenCh = List(ChInv(EmptyChord, Set()),
+//      ChInv(Triad(I(0, None)), Set(Fond)),
+//      ChInv(Triad(II(0, None)), Set(Fond)),
+//      ChInv(Triad(III(0, None)), Set(Fond)),
+//      ChInv(Triad(IV(0, None)), Set(Fond)),
+//      ChInv(Triad(V(0, None)), Set(Fond)),
+//      ChInv(Triad(VI(0, None)), Set(Fond)),
+//      ChInv(Triad(VII(0, None)), Set(Fond)),
+//      ChInv(Seventh(V(0, None)), Set(Fond)))
+//    val at1 = d.findAllTones(chosenCh, melT ::: List(V), 4)
+//    val exp = List(
+//      List(O, O, O, O),
+//      List(I(0, None), III(0, None), V(0, None), I(1, None)),
+//      List(II(0, None), IV(0, None), VI(0, None), II(1, None)),
+//      List(III(0, None), V(0, None), VII(0, None), III(1, None)),
+//      List(IV(0, None), VI(0, None), I(1, None), IV(1, None)),
+//      List(V(0, None), VII(0, None), II(1, None), V(1, None)),
+//      List(VI(0, None), I(1, None), III(1, None), VI(1, None)),
+//      List(VII(0, None), II(1, None), IV(1, None), VII(1, None)),
+//      List(V(0, None), VII(0, None), II(1, None), IV(1, None)))
+//    assert(at1 == exp)
+//  }
 
-  test("findAllTones inv") {
-    val chosenCh = List(
-      ChInv(Triad(I(0, None)), Set(Fond)),
-      ChInv(Triad(I(0, None)), Set(Inv1)),
-      ChInv(Triad(I(0, None)), Set(Inv2)),
-      ChInv(Triad(I(0, None)), Set(Inv3)),
-      ChInv(Seventh(V(0, None)), Set(Fond)),
-      ChInv(Seventh(V(0, None)), Set(Inv1)),
-      ChInv(Seventh(V(0, None)), Set(Inv2)),
-      ChInv(Seventh(V(0, None)), Set(Inv3)))
-    val at1 = d.findAllTones(chosenCh, melT, 4)
-    val exp = List(
-      List(I(0, None), III(0, None), V(0, None), I(1, None)),
-      List(III(0, None), V(0, None), I(1, None), III(1, None)),
-      List(V(0, None), I(1, None), III(1, None), V(1, None)),
-      List(I(0, None), III(0, None), V(0, None), I(1, None)),
-      List(V(0, None), VII(0, None), II(1, None), IV(1, None)),
-      List(VII(0, None), II(1, None), IV(1, None), V(1, None)),
-
-      //TODO : perhaps get the lowest possible octave always ?
-      List(II(1, None), IV(1, None), V(1, None), VII(1, None)),
-      List(IV(1, None), V(1, None), VII(1, None), II(2, None)))
-
-    assert(at1 == exp)
-  }
+//  test("findAllTones inv") {
+//    val chosenCh = List(
+//      ChInv(Triad(I(0, None)), Set(Fond)),
+//      ChInv(Triad(I(0, None)), Set(Inv1)),
+//      ChInv(Triad(I(0, None)), Set(Inv2)),
+//      ChInv(Triad(I(0, None)), Set(Inv3)),
+//      ChInv(Seventh(V(0, None)), Set(Fond)),
+//      ChInv(Seventh(V(0, None)), Set(Inv1)),
+//      ChInv(Seventh(V(0, None)), Set(Inv2)),
+//      ChInv(Seventh(V(0, None)), Set(Inv3)))
+//    val at1 = d.findAllTones(chosenCh, melT, 4)
+//    val exp = List(
+//      List(I(0, None), III(0, None), V(0, None), I(1, None)),
+//      List(III(0, None), V(0, None), I(1, None), III(1, None)),
+//      List(V(0, None), I(1, None), III(1, None), V(1, None)),
+//      List(I(0, None), III(0, None), V(0, None), I(1, None)),
+//      List(V(0, None), VII(0, None), II(1, None), IV(1, None)),
+//      List(VII(0, None), II(1, None), IV(1, None), V(1, None)),
+//
+//      //TODO : perhaps get the lowest possible octave always ?
+//      List(II(1, None), IV(1, None), V(1, None), VII(1, None)),
+//      List(IV(1, None), V(1, None), VII(1, None), II(2, None)))
+//
+//    assert(at1 == exp)
+//  }
 }

@@ -30,35 +30,35 @@ class ComposerInputTest extends FunSuite {
   test("testBadInput") {
     val d = HarmonyGen(EmptySeq)
     val melLen = 12
-    val compmin = List((1, List(ChInv(Triad(I), Set(Fond)))),
-      (3, List(ChInv(Triad(II), Set(Fond)))),
-      (-1, List(ChInv(Triad(III), Set(Fond)))),
-      (9, List(ChInv(Triad(IV), Set(Fond)))))
+    val compmin = List((1, List(ChInvPoss(Triad(I), Set(Fond)))),
+      (3, List(ChInvPoss(Triad(II), Set(Fond)))),
+      (-1, List(ChInvPoss(Triad(III), Set(Fond)))),
+      (9, List(ChInvPoss(Triad(IV), Set(Fond)))))
 
     //d.getConsList(compmin, melLen) //intercept does not work for error("")
 
-    val compmax = List((1, List(ChInv(Triad(I), Set(Fond)))),
-      (3, List(ChInv(Triad(II), Set(Fond)))),
-      (melLen, List(ChInv(Triad(III), Set(Fond)))),
-      (9, List(ChInv(Triad(IV), Set(Fond)))))
+    val compmax = List((1, List(ChInvPoss(Triad(I), Set(Fond)))),
+      (3, List(ChInvPoss(Triad(II), Set(Fond)))),
+      (melLen, List(ChInvPoss(Triad(III), Set(Fond)))),
+      (9, List(ChInvPoss(Triad(IV), Set(Fond)))))
 
     //d.getConsList(compmax, melLen) //same
 
-    val compdup = List((1, List(ChInv(Triad(I), Set(Fond)))),
-      (3, List(ChInv(Triad(II), Set(Fond)))),
-      (8, List(ChInv(Triad(III), Set(Fond)))),
-      (8, List(ChInv(Triad(III), Set(Fond)))),
-      (9, List(ChInv(Triad(IV), Set(Fond)))))
+    val compdup = List((1, List(ChInvPoss(Triad(I), Set(Fond)))),
+      (3, List(ChInvPoss(Triad(II), Set(Fond)))),
+      (8, List(ChInvPoss(Triad(III), Set(Fond)))),
+      (8, List(ChInvPoss(Triad(III), Set(Fond)))),
+      (9, List(ChInvPoss(Triad(IV), Set(Fond)))))
 
     val compafter = d.getConsList(compdup, melLen)
     assert(compafter.length == melLen)
     println(compafter)
 
-    val comporder = List((1, List(ChInv(Triad(I), Set(Fond)))),
-      (3, List(ChInv(Triad(II), Set(Fond)))),
-      (8, List(ChInv(Triad(III), Set(Fond)))),
-      (5, List(ChInv(Triad(III), Set(Fond)))),
-      (9, List(ChInv(Triad(IV), Set(Fond)))))
+    val comporder = List((1, List(ChInvPoss(Triad(I), Set(Fond)))),
+      (3, List(ChInvPoss(Triad(II), Set(Fond)))),
+      (8, List(ChInvPoss(Triad(III), Set(Fond)))),
+      (5, List(ChInvPoss(Triad(III), Set(Fond)))),
+      (9, List(ChInvPoss(Triad(IV), Set(Fond)))))
 
     val compaftero = d.getConsList(comporder, melLen)
     assert(compaftero.length == melLen)

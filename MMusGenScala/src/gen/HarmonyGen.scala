@@ -14,7 +14,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
   val allChords: List[Chord] = List(Triad(I), Triad(II), Triad(III),
     Triad(IV), Triad(V), Triad(VI), Triad(VII), Seventh(V))
   //TODO add all what is in the grammar
-  //TODO : should be ChInv perhaps ?
+  //TODO : should be ChInvPoss perhaps ?
 
   val nbChordNotes = 4; //TODO : for now, for basic note placement
 
@@ -102,27 +102,27 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
   }
 
   def getPossChords(t: Tone): List[ChInv] = {
-    def possInv(c: Chord): Set[Inversion] = {
+    def possChInv(c: Chord): List[ChInv] = {
       c match {
-        case EmptyChord => Set.empty
-        case Triad(I(_, _)) => Set(Fond, Inv1, Inv2)
+        case EmptyChord => List(ChInv(EmptyChord, Fond))
+        case Triad(I(_, _)) => List(ChInv(c, Fond), ChInv(c, Inv1), ChInv(c, Inv2))
 
         //TODO : knowing t tone of the melody, 
         // put away some inversions (ex : if 3rd, no Inv2)
-        case Triad(_) => Set(Fond, Inv1)
-        case Seventh(_) => Set(Fond, Inv1, Inv2, Inv3)
+        case Triad(_) => List(ChInv(c, Fond), ChInv(c, Inv1))
+        case Seventh(_) => List(ChInv(c, Fond), ChInv(c, Inv1), ChInv(c, Inv2), ChInv(c, Inv3))
 
         //TODO : add other special cases (in terms of chord)
 
-        case _ if (c.tones.size == 3) => Set(Fond, Inv1, Inv2)
-        case _ if (c.tones.size == 4) => Set(Fond, Inv1, Inv2, Inv3)
-        case _ => Set(Fond) // TODO : perhaps not the best to do ? normally, nothing will go there
+        case _ if (c.tones.size == 3) => List(ChInv(c, Fond), ChInv(c, Inv1), ChInv(c, Inv2))
+        case _ if (c.tones.size == 4) => List(ChInv(c, Fond), ChInv(c, Inv1), ChInv(c, Inv2), ChInv(c, Inv3))
+        case _ => List(ChInv(c, Fond)) // TODO : perhaps not the best to do ? normally, nothing will go there
       }
     }
 
     t match {
-      case O => List(ChInv(EmptyChord, Set.empty))
-      case _ => (allChords.filter(_.contains(t))).map(x => ChInv(x, possInv(x)))
+      case O => List(ChInv(EmptyChord, Fond))
+      case _ => (allChords.filter(_.contains(t))).map(x => possChInv(x)).flatten
     }
   }
 
@@ -130,11 +130,19 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     def mergeChInv(p: List[ChInv], c: List[CConstr]): List[ChInv] = {
       if (c.head == NoCons) p
       else {
-        for { i <- p; j <- c if i.canIntersect(j) }
-          yield i.intersect(j)
+        val chInvs = (c map { x => possInvToInv(x) }).flatten
+        for { i <- p; j <- chInvs if i == j }
+          yield i
       }
     }
     mergeChInv(getPossChords(cc._1), cc._2)
+  }
+
+  def possInvToInv(cip: CConstr): List[ChInv] = {
+    cip match {
+      case NoCons => Nil
+      case ChInvPoss(c, l) => l.toList map { x => ChInv(c, x) }
+    }
   }
 
   //find chords with formal constraints
@@ -184,7 +192,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
         // or put a harmonically correct chord ? (-> dissonance) ? : if cadence, yes ?
         if (buf.isEmpty) {
           // at the end
-          val nextC = ChInv(EmptyChord, Set.empty)
+          val nextC = ChInv(EmptyChord, Fond)
           findChord(nextC, possC.tail, nextC :: buf)
         } else {
           //keep the previous chord
@@ -193,20 +201,20 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
         }
       } else if (possC.head.head.c == EmptyChord) {
         //silent : give silent chord, but continues harmony for next
-        findChord(next, possC.tail, ChInv(EmptyChord, Set.empty) :: buf)
+        findChord(next, possC.tail, ChInv(EmptyChord, Fond) :: buf)
       }
 
       val possChI = possC.head
       val inter: List[ChInv] = {
         if (next == NoEnd) possChI
-        else intersectChInv(possChI, prevPoss(next))
+        else possChI.intersect(prevPoss(next))
       }
       if (inter.isEmpty) {
         //no possible chord is harmonically ok,
         // but there are possible chords (possC.head isn't empty)
-        if (buf.nonEmpty && intersectChInv(possChI, List(buf.head)).nonEmpty) {
+        if (buf.nonEmpty && possChI.intersect(List(buf.head)).nonEmpty) {
           //give the previous if it is possible
-          val nextC = intersectChInv(possChI, List(buf.head)).head
+          val nextC = possChI.intersect(List(buf.head)).head
           findChord(nextC, possC.tail, nextC :: buf)
         } else {
           //take a possible chord, even if harmonically not ok
@@ -223,14 +231,6 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
     }
 
-    def intersectChInv(a: List[ChInv], b: List[ChInv]): List[ChInv] = {
-      val ca = a.map(_.c)
-      val cb = b.map(_.c)
-      val cint = ca.intersect(cb)
-
-      cint map { x => ChInv(x, (a.find(c => c.c == x).get.i).intersect(b.find(c => c.c == x).get.i)) }
-
-    }
     //findEnd(endF, poss.reverse)
     findChord(endF, poss.reverse, Nil)
   }
@@ -248,26 +248,19 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
       //also : sometimes use Inv1 or inversions of seventh
       ch.c match {
         case EmptyChord => (0 until nbNotes).toList map { y => O }
-        case Seventh(t) => //TODO : change that ? head no more deterministic
-          (0 until nbNotes).toList map { y => ch.c(y + (ch.i.head.first % ch.c.tones.length)) }
+        case Seventh(t) =>
+          (0 until nbNotes).toList map { y => ch.c(y + (ch.i.first % ch.c.tones.length)) }
         case _ if (nbNotes != 4) =>
-          (0 until nbNotes).toList map { y => ch.c(y + (ch.i.head.first % ch.c.tones.length)) }
+          (0 until nbNotes).toList map { y => ch.c(y + (ch.i.first % ch.c.tones.length)) }
         case Triad(t) => {
-          if (ch.i.contains(Fond)) (0 until nbNotes).toList map { y => ch.c(y) }
-          else if (ch.i.contains(Inv1)) List(1, 2, 3, 5) map { y => ch.c(y) }
-          else if (ch.i.contains(Inv2)) List(2, 3, 4, 6) map { y => ch.c(y) }
-          else (0 until nbNotes).toList map { y => ch.c(y) }
-
-          /* //when there was a list
-          ch.i.head match { //TODO : non det
-          case Fond | Inv3 => (0 until nbNotes).toList map { y => ch.c(y) }
-          //it should sound better like that
-          case Inv1 =>
-            List(1, 2, 3, 5) map { y => ch.c(y) } //or 1356
-          case Inv2 =>
-            List(2, 3, 4, 6) map { y => ch.c(y) }
-          */
-
+          ch.i match {
+            case Fond | Inv3 => (0 until nbNotes).toList map { y => ch.c(y) }
+            //it should sound better like that
+            case Inv1 =>
+              List(1, 2, 3, 5) map { y => ch.c(y) } //or 1356
+            case Inv2 =>
+              List(2, 3, 4, 6) map { y => ch.c(y) }
+          }
         }
         case _ => (0 until nbNotes).toList map { y => O } //TODO : something else ?
       }
@@ -316,42 +309,42 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
   //TODO : way to give a list of possible chords from a grammar (for allPoss of HarmonyGen ?)
   //-- then : define a trait of harmonyGenerizers !!
+  //TODO : relax some constraints (fi1 really necessary always ?)
   def prevPoss(ci: HavePrev) /* extends PartialFunction[??]*/ : List[ChInv] = {
     ci match {
-      case ChInv(Triad(I(_, None)), i) if testInv(i) => ChInv(Seventh(V), Set(Fond, Inv1, Inv2, Inv3)) :: HarmFct(V)
-      case ChInv(Triad(II(_, None)), i) if testInv(i) => HarmFct(I)
-      //case ChInv(Triad(III(_, None)), i) if testInv(i) => ??? //no need yet
-      case ChInv(Triad(IV(_, None)), i) if testInv(i) => HarmFct(I)
-      case ChInv(Triad(V(_, None)), i) if testInv(i) => HarmFct(I) ::: HarmFct(IV)
-      case ChInv(Triad(VI(_, None)), i) if testInv(i) => getCiL(V, i)
-      case ChInv(Triad(VII(_, None)), i) if testInv(i) => HarmFct(I) ::: HarmFct(IV)
-      case ChInv(Triad(I(_, None)), i) if testInv(i, Set(Inv2)) => HarmFct(IV) //TODO ? in fact : II in Inv 1 only
-      case ChInv(Seventh(V(o, None)), i) if testInv(i) => prevPoss(ChInv(Triad(V(o, None)), Set(Fond, Inv1)))
+      case ChInv(Triad(I(_, None)), i) if fi1(i) => possInvToInv(ChInvPoss(Seventh(V), Set(Fond, Inv1, Inv2, Inv3))) ::: HarmFct(V)
+      case ChInv(Triad(II(_, None)), i) if fi1(i) => HarmFct(I)
+      //case ChInv(Triad(III(_, None)), i) if fi1(i) => ??? //no need yet
+      case ChInv(Triad(IV(_, None)), i) if fi1(i) => HarmFct(I)
+      case ChInv(Triad(V(_, None)), i) if fi1(i) => HarmFct(I) ::: HarmFct(IV)
+      case ChInv(Triad(VI(_, None)), i) if fi1(i) => getCiL(List(V), List(Fond, Inv1))
+      case ChInv(Triad(VII(_, None)), i) if fi1(i) => HarmFct(I) ::: HarmFct(IV)
+      case ChInv(Triad(I(_, None)), Inv2) => HarmFct(IV) //TODO ? in fact : II in Inv 1 only
+      case ChInv(Seventh(V(o, None)), i) => prevPoss(ChInv(Triad(V(o, None)), Fond)) //TODO : verify inversion ?
       //TODO : add others ? (perhaps no need yet of nap and secondaryDoms)
-      case EndReal => getCiL(I, Set(Fond)) ::: getCiL(V, Set(Fond))
-      case EndMiddle => getCiL(I, Set(Fond)) ::: getCiL(VI, Set(Fond, Inv1))
-      case EndHalf => getCiL(V, Set(Fond))
+      case EndReal => List(ChInv(Triad(I), Fond))
+      case EndMiddle => ChInv(Triad(I), Fond) :: getCiL(List(VI), List(Fond, Inv1))
+      case EndHalf => List(ChInv(Triad(V), Fond))
       case NoEnd => error("no NoEnd should go into prevPoss") //TODO : perhaps manage differently
       case _ => Nil
     }
   }
-
-  //TODO perhaps better way to do pattern matching with list
-  def testInv(i: Set[Inversion], li: Set[Inversion] = Set(Fond, Inv1)): Boolean = {
-    i.intersect(li).nonEmpty
+  def fi1(i: Inversion): Boolean = {
+    i == Fond || i == Inv1
   }
 
   def HarmFct(t: Tone): List[ChInv] = {
     t match {
-      case I(_, None) => List(I, VI).map(x => ChInv(Triad(x), Set(Fond, Inv1)))
-      case V(_, None) => ChInv(Triad(I), Set(Inv2)) :: //I64
-        List(V, VII).map(x => ChInv(Triad(x), Set(Fond, Inv1)))
-      case IV(_, None) => List(IV, II).map(x => ChInv(Triad(x), Set(Fond, Inv1)))
+      case I(_, None) => getCiL(List(I, VI), List(Fond, Inv1))
+      case V(_, None) => ChInv(Triad(I), Inv2) :: //I64
+        getCiL(List(V, VII), List(Fond, Inv1))
+      case IV(_, None) => getCiL(List(IV, II), List(Fond, Inv1))
       case _ => Nil
     }
   }
 
-  def getCiL(t: Tone, i: Set[Inversion]): List[ChInv] = List(t).map(x => ChInv(Triad(x), i))
+  def getCiL(t: List[Tone], i: List[Inversion]): List[ChInv] =
+    (t.map(x => i map { y => ChInv(Triad(x), y) })).flatten
 
   /*
   def followPoss(c: Chord) /* extends PartialFunction[??]*/ : List[List[Chord]] = {
