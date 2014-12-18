@@ -154,33 +154,46 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
   //find chords with formal constraints
   //compc info is included in poss
   def findChordsC(poss: List[List[ChInv]], endF: HavePrev, useEnd: Boolean): Option[List[ChInv]] = {
+    //TODO
     //use end !!!
+    //test the thing about EmptyChords
 
     val consVarsCh: List[List[(ChInv, Formula)]] = poss map { x => x map { y => (y, boolVar()) } }
     val onlyOneChInv = ((consVarsCh map { x => x map { y => y._2 } }) map { x => Constraints.exactlyOne(x) }).flatten
 
+    //    def possPairs(c1: List[(ChInv, Formula)], c2: List[(ChInv, Formula)]): List[(Formula, Formula)] = {
+    //      (c2 map { x =>
+    //        {
+    //          x._1 match {
+    //            // takes care when c2 contains only EmptyChord
+    //            case ChInv(EmptyChord, _) => c1 map { y => (y._2, x._2) }
+    //            // takes care when c1 contains only EmptyChord, and c2 not
+    //            case _ => {
+    //              c1 match {
+    //                case (ChInv(EmptyChord, _), f) :: t => List((f, x._2))
+    //                case _ => mergeP(c1, (prevPoss(x._1), x._2))
+    //              }
+    //            }
+    //          }
+    //        }
+    //      }).flatten
+    //    }
     def possPairs(c1: List[(ChInv, Formula)], c2: List[(ChInv, Formula)]): List[(Formula, Formula)] = {
-      (c2 map { x =>
-        {
-          x._1 match {
-            // takes care when c2 contains only EmptyChord
-            case ChInv(EmptyChord, _) => c1 map { y => (y._2, x._2) }
-            // takes care when c1 contains only EmptyChord, and c2 not
-            case _ => {
-              c1 match {
-                case (ChInv(EmptyChord, _), f) :: t => List((f, x._2))
-                case _ => mergeP(c1, (prevPoss(x._1), x._2))
-              }
-            }
-          }
-        }
-      }).flatten
+      (c2 map { x => mergeP(c1, (prevPoss(x._1), x._2)) }).flatten
     }
     def mergeP(prev: List[(ChInv, Formula)], poss: (List[ChInv], Formula)): List[(Formula, Formula)] = {
       for (i <- poss._1; j <- prev if j._1 == i) yield (j._2, poss._2)
     }
 
-    val pairsFormulas = (consVarsCh zip consVarsCh.tail) map { x => possPairs(x._1, x._2) }
+    val consVarsNoEmptyChord = consVarsCh.filterNot({ x =>
+      x.exists({ y =>
+        y._1 match {
+          case ChInv(EmptyChord, _) => true
+          case _ => false
+        }
+      })
+    })
+    val pairsFormulas = (consVarsNoEmptyChord zip consVarsNoEmptyChord.tail) map { x => possPairs(x._1, x._2) }
 
     val pairVars = pairsFormulas map { x => x map { y => boolVar() } }
     val onlyOnePairChInv = ((pairsFormulas zip pairVars) map { x => Constraints.exactlyOnePair(x._1, x._2) }).flatten
