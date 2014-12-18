@@ -108,7 +108,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
         case Triad(I(_, _)) => List(ChInv(c, Fond), ChInv(c, Inv1), ChInv(c, Inv2))
 
         //TODO : knowing t tone of the melody, 
-        // put away some inversions (ex : if 3rd, no Inv2)
+        // put away some inversions (ex : if 3rd, no Inv1)
         case Triad(_) => List(ChInv(c, Fond), ChInv(c, Inv1))
         case Seventh(_) => List(ChInv(c, Fond), ChInv(c, Inv1), ChInv(c, Inv2), ChInv(c, Inv3))
 
@@ -159,9 +159,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
       (c2 map { x => mergeP(c1, (prevPoss(x._1), x._2)) }).flatten
     }
     def mergeP(prev: List[(ChInv, Formula)], poss: (List[ChInv], Formula)): List[(Formula, Formula)] = {
-      for (i <- poss._1; j <- prev if j == i) yield (j._2, poss._2)
-      //TODO test if really ok the equality
-      //ok if sam inv set, but if subset : consider ok or not ?
+      for (i <- poss._1; j <- prev if j._1 == i) yield (j._2, poss._2)
     }
 
     val pairsFormulas = (consVarsCh zip consVarsCh.tail) map { x => possPairs(x._1, x._2) }
@@ -301,12 +299,6 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     voices.tail.foldLeft(EmptyPar | toSequ(voices.head))((x, y) => x | toSequ(y))
   }
 
-  /*
-  def chooseOneIn[A](l: List[A]): A = {
-    Random.shuffle(l).head
-  }
-  */
-
   //TODO : way to give a list of possible chords from a grammar (for allPoss of HarmonyGen ?)
   //-- then : define a trait of harmonyGenerizers !!
   //TODO : relax some constraints (fi1 really necessary always ?)
@@ -345,11 +337,6 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
   def getCiL(t: List[Tone], i: List[Inversion]): List[ChInv] =
     (t.map(x => i map { y => ChInv(Triad(x), y) })).flatten
-
-  /*
-  def followPoss(c: Chord) /* extends PartialFunction[??]*/ : List[List[Chord]] = {
-    ???
-  }*/
 
 }
 

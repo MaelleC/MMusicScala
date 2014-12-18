@@ -12,37 +12,13 @@ object Chord {
   }
 }
 
-//object Chord {
-//  implicit def ctoint(c : Chord) : Int = 1
-//}
-
 trait CConstr
 case object NoCons extends CConstr
+case class ChInvPoss(c: Chord, i: Set[Inversion]) extends CConstr
 
 trait HavePrev
 
-//case class ChInv(c: Chord, i: Set[Inversion]) extends HavePrev with CConstr {
-//  def canIntersect(that: CConstr): Boolean = {
-//    that match {
-//      case NoCons => false
-//      case ChInv(c1, i1) => c1 == c && i.intersect(i1).nonEmpty
-//    }
-//  }
-//  def intersect(that: CConstr): ChInv = {
-//    that match {
-//      case NoCons => error("no NoCons should be given to this function")
-//      case ChInv(c1, i1) => if (c1 != c) {
-//        error("should use canIntersect before using intersect")
-//      } else {
-//        ChInv(c, i.intersect(i1))
-//      }
-//    }
-//  }
-//}
-
 case class ChInv(c: Chord, i: Inversion) extends HavePrev
-
-case class ChInvPoss(c: Chord, i: Set[Inversion]) extends CConstr
 
 class ChiEnd extends HavePrev with CConstr
 case object EndReal extends ChiEnd //want real complete cadence
