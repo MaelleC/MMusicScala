@@ -154,11 +154,13 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
   //find chords with formal constraints
   //compc info is included in poss
   def findChordsC(poss: List[List[ChInv]], endF: HavePrev, useEnd: Boolean): Option[List[ChInv]] = {
-    //TODO
-    //use end !!!
-    //test the thing about EmptyChords
+    //TODO : see if do differently with end than with other constraints
+    val possE = {
+      if (useEnd && endF != NoEnd && poss.nonEmpty) poss.take(poss.length - 1) ::: List(poss.last.intersect(prevPoss(endF)))
+      else poss
+    }
 
-    val consVarsCh: List[List[(ChInv, Formula)]] = poss map { x => x map { y => (y, boolVar()) } }
+    val consVarsCh: List[List[(ChInv, Formula)]] = possE map { x => x map { y => (y, boolVar()) } }
     val onlyOneChInv = ((consVarsCh map { x => x map { y => y._2 } }) map { x => Constraints.exactlyOne(x) }).flatten
 
     //    def possPairs(c1: List[(ChInv, Formula)], c2: List[(ChInv, Formula)]): List[(Formula, Formula)] = {
