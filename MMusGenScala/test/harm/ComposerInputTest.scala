@@ -5,7 +5,7 @@ import segmentSystem._
 import gen._
 import chord._
 import tonalSystem.Tone._
-import gen.Chord._
+import gen.Chord._ //implicit conversion
 
 class ComposerInputTest extends FunSuite {
 

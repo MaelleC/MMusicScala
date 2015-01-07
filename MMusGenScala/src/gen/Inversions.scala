@@ -1,11 +1,13 @@
 package gen
 
 import chord._
+import tonalSystem.Tone._
 
 object Chord {
   implicit def Chord2CConstr(c: Chord): CConstr = {
     c match {
-      case Triad(x) => ChInvPoss(c, Set(Fond, Inv1, Inv2))
+      case Triad(I(_, None)) => ChInvPoss(c, Set(Fond, Inv1, Inv2))
+      case Triad(x) => ChInvPoss(c, Set(Fond, Inv1))
       case Seventh(x) => ChInvPoss(c, Set(Fond, Inv1, Inv2, Inv3))
       case _ => ChInvPoss(c, Set(Fond))
     }
