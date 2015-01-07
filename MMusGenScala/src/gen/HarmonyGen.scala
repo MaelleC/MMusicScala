@@ -426,20 +426,18 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     voices.tail.foldLeft(EmptyPar | toSequ(voices.head))((x, y) => x | toSequ(y))
   }
 
-  // TODO ? : if V7+ -> I, I has to be Fond, can't be I6
-  //TODO : relax some constraints (fi1 really necessary always ?), only for I probably is needed, but think more
-  //TODO : put in prevPoss things for all chords of possibleChords !!!
   def prevPoss(ci: HavePrev): List[ChInv] = {
     ci match {
-      case ChInv(Triad(I(_, None)), i) if fi1(i) => possInvToInv(ChInvPoss(Seventh(V), Set(Fond, Inv1, Inv2, Inv3))) ::: HarmFct(V)
-      case ChInv(Triad(II(_, None)), i) if fi1(i) => HarmFct(I)
-      case ChInv(Triad(III(_, None)), i) if fi1(i) => ??? //no need yet
-      case ChInv(Triad(IV(_, None)), i) if fi1(i) => HarmFct(I)
-      case ChInv(Triad(V(_, None)), i) if fi1(i) => HarmFct(I) ::: HarmFct(IV)
-      case ChInv(Triad(VI(_, None)), i) if fi1(i) => getCiL(List(V), List(Fond, Inv1))
-      case ChInv(Triad(VII(_, None)), i) if fi1(i) => HarmFct(I) ::: HarmFct(IV)
-      case ChInv(Triad(I(_, None)), Inv2) => HarmFct(IV)
-      case ChInv(Seventh(V(o, None)), i) => prevPoss(ChInv(Triad(V(o, None)), Fond))
+      case ChInv(Triad(I(_, None)), Fond) => possInvToInv(ChInvPoss(Seventh(V), Set(Fond, Inv1, Inv2, Inv3))) ::: HarmFct(V)
+      case ChInv(Triad(I(_, None)), Inv1) => HarmFct(V)
+      case ChInv(Triad(I(_, None)), Inv2) => ChInv(Triad(III), Fond) :: HarmFct(IV)
+      case ChInv(Triad(II(_, None)), _) => HarmFct(I)
+      case ChInv(Triad(III(_, None)), _) => HarmFct(I)
+      case ChInv(Triad(IV(_, None)), _) => HarmFct(I)
+      case ChInv(Triad(V(_, None)), _) => HarmFct(I) ::: HarmFct(IV)
+      case ChInv(Triad(VI(_, None)), _) => getCiL(List(V), List(Fond, Inv1))
+      case ChInv(Triad(VII(_, None)), _) => HarmFct(I) ::: HarmFct(IV)
+      case ChInv(Seventh(V(o, None)), _) => prevPoss(ChInv(Triad(V(o, None)), Fond))
       case EndReal => List(ChInv(Triad(I), Fond))
       case EndMiddle => ChInv(Triad(I), Fond) :: getCiL(List(VI), List(Fond, Inv1))
       case EndHalf => List(ChInv(Triad(V), Fond))
