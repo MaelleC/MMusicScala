@@ -20,9 +20,12 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
   def harmonize(endF: ChiEnd, useC: Boolean = false, compcorig: List[(Int, List[CConstr])] = Nil): (MusicalSegment, ParallelSegment) = {
     val mel = getMel(melody)
-
-    //val minNote = mel.notes.min(NoteOrdering)
-    //TODO : perhaps tell if melody too low (and notes of chords go higher than melody)
+    val minNote = (mel.notes).filter { x =>
+      x.tone match {
+        case O => false
+        case _ => true
+      }
+    }.min(NoteOrdering)
 
     val melT = mel.notes map (_.tone)
     val compc: List[List[CConstr]] = {
@@ -42,9 +45,6 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
     }
 
-    //TODO : for Triad(I) : separate in two ChInvs : One with Fond and In1, one with Inv2
-    //and change prevPoss
-    //perhaps always put only one inversion in each chInv ?
     val seed = Random.nextInt()
     val chosenChords = {
       if (!useC) findChords(possibleChords, endF, seed)
@@ -63,10 +63,22 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     println("Chosen chords (with their inversion and index in list) : ")
     println(chosenChords.zipWithIndex)
 
+    //returns the chords notes without the melody
     val chosenTonesL = findAllTones(chosenChords, melT, nbChordNotes)
+
     val chosenNotes = tonesToNotes(chosenTonesL, mel.notes)
 
-    (mel, createPar(transpose(chosenNotes)))
+    val transposed = transpose(chosenNotes)
+
+    val maxNote = transposed.last.max(NoteOrdering)
+    println(maxNote)
+
+    if (NoteOrdering.lt(minNote, maxNote)) {
+      printWarn("The melody is lower than the accompaniment at some point",
+        "You could put it one or more octaves higher, it could sound better.")
+    }
+
+    (mel, createPar(transposed))
 
   }
 
@@ -265,11 +277,9 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
   /**
    * returns a sequential list of parallel list of notes, without the melody
    */
-  def findAllTones(chords: List[ChInv], mel: List[Tone], nbNotes: Int /*, lowerBound: Tone*/ ): List[List[Tone]] = {
-    //TODO ? : fct that put away some inversions from a list of chord
-    // (ex : if V7+ -> I, I has to be Fond, can't be I6)
+  def findAllTones(chords: List[ChInv], mel: List[Tone], nbNotes: Int): List[List[Tone]] = {
 
-    def findTones(ch: ChInv, melN: Tone): List[Tone] = {
+    def findTones(ch: ChInv /*, melN: Tone*/ ): List[Tone] = {
       ch.c match {
         case EmptyChord => (0 until nbNotes).toList map { y => O }
         case Seventh(t) =>
@@ -292,7 +302,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
     (chords zip mel) map { x =>
       {
-        val re = findTones(x._1, x._2)
+        val re = findTones(x._1 /*, x._2*/ )
         //if lower note has octave >= 1 : lower all
         if (re.head.octave >= 1) {
           re map { y => y.newTone(y.octave - re.head.octave, y.alter) }
@@ -325,6 +335,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     voices.tail.foldLeft(EmptyPar | toSequ(voices.head))((x, y) => x | toSequ(y))
   }
 
+  // TODO ? : if V7+ -> I, I has to be Fond, can't be I6
   //TODO : relax some constraints (fi1 really necessary always ?), only for I probably is needed, but think more
   def prevPoss(ci: HavePrev) /* extends PartialFunction[??]*/ : List[ChInv] = {
     ci match {

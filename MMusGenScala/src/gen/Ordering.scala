@@ -12,13 +12,20 @@ object NoteOrdering extends Ordering[Note] {
 }
 object ToneOrdering extends Ordering[Tone] {
   def compare(a: Tone, b: Tone) = {
-    if (a.stepsTo(b) < 0) 1
-    else if (a.stepsTo(b) > 0) -1
-    else if (a.alter == b.alter) 0
-    else if (a.alter.isDefined) {
-      if (a.alter.get) 1 else -1
-    } else {
-      if (b.alter.get) -1 else 1
+    (a, b) match {
+      case (O, O) => 0
+      case (O, _) => -1
+      case (_, O) => 1
+      case _ => {
+        if (a.stepsTo(b) < 0) 1
+        else if (a.stepsTo(b) > 0) -1
+        else if (a.alter == b.alter) 0
+        else if (a.alter.isDefined) {
+          if (a.alter.get) 1 else -1
+        } else {
+          if (b.alter.get) -1 else 1
+        }
+      }
     }
   }
 }
