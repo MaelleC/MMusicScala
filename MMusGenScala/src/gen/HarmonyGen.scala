@@ -312,7 +312,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     voices.tail.foldLeft(EmptyPar | toSequ(voices.head))((x, y) => x | toSequ(y))
   }
 
-  //TODO : relax some constraints (fi1 really necessary always ?)
+  //TODO : relax some constraints (fi1 really necessary always ?), only for I probably is needed, but think more
   def prevPoss(ci: HavePrev) /* extends PartialFunction[??]*/ : List[ChInv] = {
     ci match {
       case ChInv(Triad(I(_, None)), i) if fi1(i) => possInvToInv(ChInvPoss(Seventh(V), Set(Fond, Inv1, Inv2, Inv3))) ::: HarmFct(V)
