@@ -186,6 +186,38 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     def mergeP(prev: List[(ChInv, Formula)], poss: (List[ChInv], Formula)): List[(Formula, Formula)] = {
       for (i <- poss._1; j <- prev if j._1 == i) yield (j._2, poss._2)
     }
+    def noTwice2(c1: List[(ChInv, Formula)], c2: List[(ChInv, Formula)]): List[Formula] = {
+      val c1Prob = c1.filterNot { x => noProb2(x._1) }
+      val c2Prob = c2.filterNot { x => noProb2(x._1) }
+
+      (for (i <- c1Prob; j <- c2Prob if j._1.c == i._1.c) yield Constraints.noMoreThanOne(List(i._2, j._2))).flatten
+    }
+
+    def noProb2(ci: ChInv): Boolean = {
+      //chords that have no problem of being repeated at interval of 2
+      ci match {
+        case ChInv(Triad(I(_, _)), Fond) => true
+        case ChInv(Triad(V(_, _)), Fond) => true
+        case _ => false
+      }
+    }
+
+    def noTwice3(c1: List[(ChInv, Formula)], c2: List[(ChInv, Formula)]): List[Formula] = {
+      val c1Prob = c1.filterNot { x => noProb3(x._1) }
+      val c2Prob = c2.filterNot { x => noProb3(x._1) }
+
+      (for (i <- c1Prob; j <- c2Prob if j._1.c == i._1.c) yield Constraints.noMoreThanOne(List(i._2, j._2))).flatten
+    }
+
+    def noProb3(ci: ChInv): Boolean = {
+      //chords that have no problem of being repeated at interval of 3
+      ci match {
+        case ChInv(Triad(I(_, _)), Fond) => true
+        case ChInv(Triad(V(_, _)), Fond) => true
+        case ChInv(Triad(IV(_, _)), Fond) => true
+        case _ => false
+      }
+    }
 
     val consVarsNoEmptyChord = consVarsCh.filterNot({ x =>
       x.exists({ y =>
@@ -195,16 +227,58 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
         }
       })
     })
-    val pairsFormulas = (consVarsNoEmptyChord zip consVarsNoEmptyChord.tail) map { x => possPairs(x._1, x._2) }
+
+    val pairsFormulas = {
+      if (consVarsNoEmptyChord.nonEmpty) (consVarsNoEmptyChord zip consVarsNoEmptyChord.tail) map { x => possPairs(x._1, x._2) }
+      else Nil
+    }
 
     val pairVars = pairsFormulas map { x => x map { y => boolVar() } }
     val onlyOnePairChInv = ((pairsFormulas zip pairVars) map { x => Constraints.exactlyOnePair(x._1, x._2) }).flatten
 
-    val allConstraints = onlyOneChInv ++ onlyOnePairChInv
-    solveForSatisfiability(and(allConstraints: _*)) match {
+    val allConstraintsSimple = onlyOneChInv ++ onlyOnePairChInv
+    val solSimple = solveForSatisfiability(and(allConstraintsSimple: _*)) match {
       case None => None
       case Some(result) => Some(consVarsCh map { x => (x.filter { y => result(y._2) }).head._1 })
     }
+
+    val int2PairsCons = {
+      if (solSimple.isDefined && consVarsNoEmptyChord.nonEmpty && consVarsNoEmptyChord.tail.nonEmpty) {
+        ((consVarsNoEmptyChord zip consVarsNoEmptyChord.tail.tail) map { x => noTwice2(x._1, x._2) }).flatten
+      } else {
+        Nil
+      }
+    }
+
+    val int3PairsCons = {
+      if (solSimple.isDefined && consVarsNoEmptyChord.nonEmpty && consVarsNoEmptyChord.tail.nonEmpty && consVarsNoEmptyChord.tail.tail.nonEmpty) {
+        ((consVarsNoEmptyChord zip consVarsNoEmptyChord.tail.tail.tail) map { x => noTwice3(x._1, x._2) }).flatten
+      } else {
+        Nil
+      }
+    }
+
+    val allConstraints = allConstraintsSimple ++ int2PairsCons ++ int3PairsCons
+    val solMore = {
+      if (solSimple.isDefined && int2PairsCons.nonEmpty) {
+        println("Could solve with basic constraints, try with more.")
+        solveForSatisfiability(and(allConstraints: _*)) match {
+          case None => {
+            println("Could not solve with more constraints.")
+            None
+          }
+          case Some(result) => Some(consVarsCh map { x => (x.filter { y => result(y._2) }).head._1 })
+        }
+      } else {
+        None
+      }
+    }
+
+    if (solMore.isDefined) {
+      println("Solved with all constraints")
+      solMore
+    } else solSimple
+
   }
 
   //find chords without formal constraints, linearly

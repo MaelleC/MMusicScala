@@ -8,10 +8,15 @@ object Constraints {
     val atLeastOne = List(or(cs: _*))
 
     //no more than one variable is true
-    val noMoreThanOne = for (c1 <- 0 until (cs.length - 1); c2 <- (c1 + 1) until cs.length)
-      yield !cs(c1) || !cs(c2)
+    val noMoreThanOne1 = noMoreThanOne(cs)
 
-    atLeastOne ++ noMoreThanOne
+    atLeastOne ++ noMoreThanOne1
+  }
+
+  def noMoreThanOne(cs: List[Formula]): List[Formula] = {
+    val formulas = for (c1 <- 0 until (cs.length - 1); c2 <- (c1 + 1) until cs.length)
+      yield !cs(c1) || !cs(c2)
+    formulas.toList
   }
 
   def exactlyOnePair(cp: List[(Formula, Formula)], cs: List[Formula]): List[Formula] = {
