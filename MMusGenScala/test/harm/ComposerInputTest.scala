@@ -64,6 +64,15 @@ class ComposerInputTest extends FunSuite {
     assert(compaftero.length == melLen)
     println(compaftero)
 
+    val compEmpty = List((1, List(ChInvPoss(Triad(I), Set(Fond)))),
+      (3, List(ChInvPoss(Triad(II), Set(Fond)), NoCons)),
+      (8, List(ChInvPoss(Triad(III), Set(Fond)))),
+      (9, List(ChInvPoss(Triad(IV), Set(Fond)))))
+
+    val compaftere = d.getConsList(compEmpty, melLen)
+    assert(compaftere.length == melLen)
+    println(compaftere)
+
   }
 
 }

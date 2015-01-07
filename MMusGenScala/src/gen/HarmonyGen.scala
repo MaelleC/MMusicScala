@@ -18,7 +18,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
   val nbChordNotes = 4; //for basic note placement that is better than 3
 
-  def harmonize(endF: ChiEnd, useC: Boolean = false, compcorig: List[(Int, List[CConstr])] = Nil): (MusicalSegment, ParallelSegment) = {
+  def harmonize(endF: ChiEnd, useConstraintsSolver: Boolean = false, composerConstraints: List[(Int, List[CConstr])] = Nil): (MusicalSegment, ParallelSegment) = {
     val mel = getMel(melody)
     val minNote = (mel.notes).filter { x =>
       x.tone match {
@@ -29,9 +29,9 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
     val melT = mel.notes map (_.tone)
     val compc: List[List[CConstr]] = {
-      compcorig match {
+      composerConstraints match {
         case Nil => Nil
-        case _ => getConsList(compcorig, melT.length)
+        case _ => getConsList(composerConstraints, melT.length)
       }
     }
     val compcForEnd: Boolean = {
@@ -47,13 +47,11 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
     val seed = Random.nextInt()
     val chosenChords = {
-      if (!useC) findChords(possibleChords, endF, seed)
+      if (!useConstraintsSolver) findChords(possibleChords, endF, seed)
       else findChordsC(possibleChords, endF, (compc.isEmpty || !compcForEnd)) match {
         case Some(possC) => possC
         case None => {
-          //TODO : differently ? ex tell which constraint is not ok, perhaps;
-          //see if cafesat can tell where is contradiction
-          println("could not solve with constraints, try without, but not all composer constraints will be satisfied.")
+          println("could not solve with constraints, try with the linear harmonizer for possible diagnostic,\n but not all composer constraints will be satisfied.")
           findChords(possibleChords, endF, seed)
         }
       }
@@ -90,9 +88,6 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
   }
 
   def getConsList(ori: List[(Int, List[CConstr])], melLen: Int): List[List[CConstr]] = {
-    //!!!!!!!!!!
-    //TODO : verify that in allChords and with possible inversions (si 3 notes : no inv3 p ex.)
-    //also : put in prevPoss things for all chords of possibleChords !!!
     def noConsL(i1: Int, i2: Int): List[List[CConstr]] = (List.range(i1, i2) map { x => List(NoCons) })
     def getConsList0(buf: List[List[CConstr]], o: List[(Int, List[CConstr])]): List[List[CConstr]] = {
       if (o.isEmpty) {
@@ -108,7 +103,25 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
               " Constraint is dropped")
           }
           getConsList0(buf, o.tail)
-        } else getConsList0(buf ::: noConsL(buf.length, o.head._1) ::: List(o.head._2), o.tail)
+        } else {
+          val valid = {
+            if (o.head._2.contains(NoCons)) {
+              if (o.head._2.length != 1) printWarn("For index " + o.head._1, "all other than NoCons are not taken into account")
+              List(NoCons)
+            } else {
+              o.head._2 filter { x =>
+                x match {
+                  case ChInvPoss(c, i) => allChords.contains(c) && i.nonEmpty && !i.exists(y => y.first > c.tones.length)
+                  case NoCons => false //should not happen
+                }
+              }
+            }
+          }
+          if (valid.length != o.head._2.length && !o.head._2.contains(NoCons)) {
+            printWarn("Index " + o.head._1 + " : exists invalid constraints (chords not supported, or empty inversion list, or incompatible inversion)", "only the valid ones are kept")
+          }
+          getConsList0(buf ::: noConsL(buf.length, o.head._1) ::: List(valid), o.tail)
+        }
       }
     }
 
@@ -370,7 +383,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
               List(2, 3, 4, 6) map { y => ch.c(y) }
           }
         }
-        case _ => (0 until nbNotes).toList map { y => O } //TODO : something else ?
+        case _ => (0 until nbNotes).toList map { y => ch.c(y + (ch.i.first % ch.c.tones.length)) }
       }
     }
 
@@ -411,6 +424,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
   // TODO ? : if V7+ -> I, I has to be Fond, can't be I6
   //TODO : relax some constraints (fi1 really necessary always ?), only for I probably is needed, but think more
+  //TODO : put in prevPoss things for all chords of possibleChords !!!
   def prevPoss(ci: HavePrev) /* extends PartialFunction[??]*/ : List[ChInv] = {
     ci match {
       case ChInv(Triad(I(_, None)), i) if fi1(i) => possInvToInv(ChInvPoss(Seventh(V), Set(Fond, Inv1, Inv2, Inv3))) ::: HarmFct(V)
