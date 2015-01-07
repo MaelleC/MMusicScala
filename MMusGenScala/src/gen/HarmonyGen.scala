@@ -68,6 +68,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
       } else {
         ???
 //        //TODO : allOneCons non empty ?
+//        //TODO : if part of length 2 or less
 //        val allOneCons: List[Int] = ???
 //        val allParts = (allOneCons.zip(allOneCons.tail)) map { x => (possibleChords( /*from x._1 to non compris x._2*/ ), possibleChords(x._2)) }
 //        val endPart = (possibleChords( /*from allOneCons.last to last*/ ), endF)
@@ -228,14 +229,20 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     val possE = {
       if (useEnd && endF != NoEnd && poss.nonEmpty) {
         //TODO : acts differently than the linear if there are silents at the end, otherwise : same behaviour here
-        val inter = poss.last.intersect(prevPoss(endF))
+        val lastNonEmpty = poss.reverse.find{ }
+        if(lastNonEmpty == None) Nil
+        else {
+          val ind = poss.lastIndexWhere(x => x.length == 1 && x.head != ChInv(EmptyChord, Fond))
+        val inter = lastNonEmpty.get.intersect(prevPoss(endF))
 
         if (inter.isEmpty) {
           //force the end 
-          poss.take(poss.length - 1) ::: List(prevPoss(endF))
+          poss.take(poss.length - 1 - ind) ::: List(prevPoss(endF)) ::: poss.
         } else {
-          poss.take(poss.length - 1) ::: List(inter)
+          poss.take(poss.length - 1 - ind) ::: List(inter)
         }
+        }
+        
 
       } else poss
     }
