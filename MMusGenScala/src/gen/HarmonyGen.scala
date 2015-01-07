@@ -189,60 +189,59 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
   def findChords(poss: List[List[ChInv]], endF: HavePrev, seed: Int): List[ChInv] = {
     println("Seed : " + seed)
     val rand = new Random(seed)
-    //    def findEnd(endi: ChiEnd, possC: List[List[ChInv]]): List[ChInv] = {
-    //      findChord(, possC.tail, )
-    //      //TOD
-    //    }
 
-    def findChord(next: HavePrev, possC: List[List[ChInv]], buf: List[ChInv]): List[ChInv] = {
-      if (possC.isEmpty) return buf
+    def findChord(next: HavePrev, possC: List[List[ChInv]], buf: List[ChInv], forceEnd: Boolean, nCh: Int): List[ChInv] = {
+      if (possC.isEmpty) return buf //finished
       else if (possC.head.isEmpty) {
         //bizarre note
-        //TODO if bizarre note : put some triad of it,
-        // or put a harmonically correct chord ? (-> dissonance) ? : if cadence, yes ?
-        if (buf.isEmpty) {
-          // at the end
-          val nextC = ChInv(EmptyChord, Fond)
-          findChord(nextC, possC.tail, nextC :: buf)
+        if (forceEnd || buf.isEmpty) {
+          //force a chord from prev of next
+          val nextC = rand.shuffle(prevPoss(next)).head
+          findChord(nextC, possC.tail, nextC :: buf, false, nCh - 1)
         } else {
           //keep the previous chord
           val nextC = buf.head
-          findChord(nextC, possC.tail, nextC :: buf)
+          findChord(nextC, possC.tail, nextC :: buf, false, nCh - 1)
         }
       } else if (possC.head.head.c == EmptyChord) {
         //silent : give silent chord, but continues harmony for next
-        findChord(next, possC.tail, ChInv(EmptyChord, Fond) :: buf)
-      }
-
-      val possChI = possC.head
-      val inter: List[ChInv] = {
-        if (next == NoEnd) possChI
-        else possChI.intersect(prevPoss(next))
-      }
-      if (inter.isEmpty) {
-        //no possible chord is harmonically ok,
-        // but there are possible chords (possC.head isn't empty)
-        if (buf.nonEmpty && possChI.intersect(List(buf.head)).nonEmpty) {
-          //give the previous if it is possible
-          val nextC = possChI.intersect(List(buf.head)).head
-          findChord(nextC, possC.tail, nextC :: buf)
-        } else {
-          //take a possible chord, even if harmonically not ok
-
-          val nextC = rand.shuffle(possChI).head
-          findChord(nextC, possC.tail, nextC :: buf)
-        }
-
+        findChord(next, possC.tail, ChInv(EmptyChord, Fond) :: buf, forceEnd, nCh - 1)
       } else {
-        //normal case : random between ok chords
-        val nextC = rand.shuffle(inter).head
-        findChord(nextC, possC.tail, nextC :: buf)
+        val possChI = possC.head
+        val inter: List[ChInv] = {
+          if (next == NoEnd) possChI
+          else possChI.intersect(prevPoss(next))
+        }
+        if (inter.isEmpty) {
+          //no possible chord is harmonically ok,
+          // but there are possible chords (possC.head isn't empty)
+          if (buf.nonEmpty && possChI.intersect(List(buf.head)).nonEmpty) {
+            //give the previous if it is possible
+            val nextC = possChI.intersect(List(buf.head)).head
+            findChord(nextC, possC.tail, nextC :: buf, false, nCh - 1)
+          } else {
+            if (forceEnd) {
+              //force a chord from prev of next
+              val nextC = rand.shuffle(prevPoss(next)).head
+              findChord(nextC, possC.tail, nextC :: buf, false, nCh - 1)
+            } else {
+              //take a possible chord, even if harmonically not ok
+              val nextC = rand.shuffle(possChI).head
+              findChord(nextC, possC.tail, nextC :: buf, false, nCh - 1)
+            }
+
+          }
+
+        } else {
+          //normal case : random between ok chords
+          val nextC = rand.shuffle(inter).head
+          findChord(nextC, possC.tail, nextC :: buf, false, nCh - 1)
+        }
       }
 
     }
 
-    //findEnd(endF, poss.reverse)
-    findChord(endF, poss.reverse, Nil)
+    findChord(endF, poss.reverse, Nil, true, poss.length - 1)
   }
 
   /**

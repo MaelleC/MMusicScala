@@ -39,13 +39,32 @@ class Melodies extends FunSuite with MelodyWriter {
       tempo,
       instrument = instrument)
   }
-  
+
   test("oneMelodyCons") {
 
     val partharm = {
       I + IV + V + I
     }
- 
+
+    val tempo = 60
+    val instrument = 0
+    val minScale = Minor(A)
+
+    val d = HarmonyGen(partharm)
+    val e = d.harmonize(EndReal, true)._2
+
+    MelodyPlayer(
+      Sequential(Nil)
+        + (e withScale Major(A)),
+      tempo,
+      instrument = instrument)
+  }
+
+  test("wrongEndNote") {
+
+    val partharm = {
+      I + IV + V + II
+    }
 
     val tempo = 60
     val instrument = 0
