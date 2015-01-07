@@ -59,6 +59,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
       }
     }
 
+    println("remark : notes are counted from 0")
     println("Chosen chords (with their inversion and index in list) : ")
     println(chosenChords.zipWithIndex)
 
@@ -197,10 +198,12 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
         if (forceEnd || buf.isEmpty) {
           //force a chord from prev of next
           val nextC = rand.shuffle(prevPoss(next)).head
+          printWarn(nCh, "no chord compatible with the note, too bizarre note;\na random End-compatible chord is chosen.")
           findChord(nextC, possC.tail, nextC :: buf, false, nCh - 1)
         } else {
           //keep the previous chord
           val nextC = buf.head
+          printWarn(nCh, "no chord compatible with the note, too bizarre note;\nprevious chord is kept.")
           findChord(nextC, possC.tail, nextC :: buf, false, nCh - 1)
         }
       } else if (possC.head.head.c == EmptyChord) {
@@ -222,10 +225,12 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
           } else {
             if (forceEnd) {
               //force a chord from prev of next
+              printWarn(nCh, "not compatible with the given End;\na random End-compatible chord is chosen.")
               val nextC = rand.shuffle(prevPoss(next)).head
               findChord(nextC, possC.tail, nextC :: buf, false, nCh - 1)
             } else {
               //take a possible chord, even if harmonically not ok
+              printWarn(nCh, "not chord harmonically ok is compatible with the note;\na random chord in the compatible ones is chosen.")
               val nextC = rand.shuffle(possChI).head
               findChord(nextC, possC.tail, nextC :: buf, false, nCh - 1)
             }
@@ -343,6 +348,10 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
   def getCiL(t: List[Tone], i: List[Inversion]): List[ChInv] =
     (t.map(x => i map { y => ChInv(Triad(x), y) })).flatten
+
+  def printWarn(nb: Int, str: String) = {
+    println("Note " + nb + " : " + str)
+  }
 
 }
 

@@ -60,6 +60,8 @@ class Melodies extends FunSuite with MelodyWriter {
       instrument = instrument)
   }
 
+  //tests for linear diagnostic
+
   test("wrongEndNote") {
 
     val partharm = {
@@ -71,7 +73,67 @@ class Melodies extends FunSuite with MelodyWriter {
     val minScale = Minor(A)
 
     val d = HarmonyGen(partharm)
-    val e = d.harmonize(EndReal, true)._2
+    val e = d.harmonize(EndReal)._2
+
+    MelodyPlayer(
+      Sequential(Nil)
+        + (e withScale Major(A)),
+      tempo,
+      instrument = instrument)
+  }
+
+  test("bizarreEndNote") {
+
+    val partharm = {
+      I + IV + V + II(2, Option(true))
+    }
+
+    val tempo = 60
+    val instrument = 0
+    val minScale = Minor(A)
+
+    val d = HarmonyGen(partharm)
+    val e = d.harmonize(EndReal)._2
+
+    MelodyPlayer(
+      Sequential(Nil)
+        + (e withScale Major(A)),
+      tempo,
+      instrument = instrument)
+  }
+
+  test("bizarreNote") {
+
+    val partharm = {
+      I + II(2, Option(true)) + V + I
+    }
+
+    val tempo = 60
+    val instrument = 0
+    val minScale = Minor(A)
+
+    val d = HarmonyGen(partharm)
+    val e = d.harmonize(EndReal)._2
+
+    MelodyPlayer(
+      Sequential(Nil)
+        + (e withScale Major(A)),
+      tempo,
+      instrument = instrument)
+  }
+
+  test("bizarreNote") {
+
+    val partharm = {
+      I + II(2, Option(true)) + V + I
+    }
+
+    val tempo = 60
+    val instrument = 0
+    val minScale = Minor(A)
+
+    val d = HarmonyGen(partharm)
+    val e = d.harmonize(EndReal)._2
 
     MelodyPlayer(
       Sequential(Nil)
