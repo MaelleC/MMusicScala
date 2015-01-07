@@ -161,7 +161,6 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
     t match {
       case O => List(ChInv(EmptyChord, Fond))
-      //TODO ? special case for III(_, None) in the filter clause to avoid it ?
       case _ => (allChords.filter(_.contains(t))).map(x => possChInv(x)).flatten
     }
   }
@@ -185,13 +184,21 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     }
   }
 
-  //find chords with formal constraints
-  //compc info is included in poss : mode "harmony rules"
+  //find chords with formal constraints and cafesat
+  //TODO compc info is included in poss : mode "harmony rules"
   def findChordsC(poss: List[List[ChInv]], endF: HavePrev, useEnd: Boolean): Option[List[ChInv]] = {
-    //TODO : see if do differently with end than with other constraints
     val possE = {
-      if (useEnd && endF != NoEnd && poss.nonEmpty) poss.take(poss.length - 1) ::: List(poss.last.intersect(prevPoss(endF)))
-      else poss
+      if (useEnd && endF != NoEnd && poss.nonEmpty) {
+        val inter = poss.last.intersect(prevPoss(endF))
+
+        if (inter.isEmpty) {
+          //force the end 
+          poss.take(poss.length - 1) ::: List(prevPoss(endF))
+        } else {
+          poss.take(poss.length - 1) ::: List(inter)
+        }
+
+      } else poss
     }
 
     val consVarsCh: List[List[(ChInv, Formula)]] = possE map { x => x map { y => (y, boolVar()) } }
