@@ -71,10 +71,10 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     val transposed = transpose(chosenNotes)
 
     val maxNote = transposed.last.max(NoteOrdering)
-    println(maxNote)
 
     if (NoteOrdering.lt(minNote, maxNote)) {
-      printWarn("The melody is lower than the accompaniment at some point",
+      printWarn("The melody is lower than the accompaniment at some point\n " +
+        "(min melody : " + minNote + ", max acc. : " + maxNote + ")",
         "You could put it one or more octaves higher, it could sound better.")
     }
 
