@@ -24,7 +24,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
   val nbChordNotes = 4; //for basic note placement this is better than 3
 
-  def harmonize(endF: ChiEnd, useConstraintsSolver: Boolean = false, composerConstraints: List[(Int, List[CConstr])] = Nil, harmonyRules: Boolean = true): (MusicalSegment, ParallelSegment) = {
+  def harmonize(endF: ChiEnd, useConstraintsSolver: Boolean = false, composerConstraints: List[(Int, List[CConstr])] = Nil /*, harmonyRules: Boolean = true*/ ): (MusicalSegment, ParallelSegment) = {
     val mel = getMel(melody)
     val minNote = (mel.notes).filter { x =>
       x.tone match {
@@ -54,40 +54,40 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
     val seed = Random.nextInt()
     val chosenChords = {
-      if (harmonyRules || compc.isEmpty) {
-        if (!useConstraintsSolver) findChords(possibleChords, endF, seed)
-        else {
-          findChordsC(possibleChords, endF, (compc.isEmpty || !compcForEnd)) match {
-            case Some(possC) => possC
-            case None => {
-              println("could not solve with constraints, try with the linear harmonizer for possible diagnostic,\n but not all composer constraints will be satisfied.")
-              findChords(possibleChords, endF, seed)
-            }
+      //      if (harmonyRules || compc.isEmpty) {
+      if (!useConstraintsSolver) findChords(possibleChords, endF, seed)
+      else {
+        findChordsC(possibleChords, endF, (compc.isEmpty || !compcForEnd)) match {
+          case Some(possC) => possC
+          case None => {
+            println("could not solve with constraints, try with the linear harmonizer for possible diagnostic,\n but not all composer constraints will be satisfied.")
+            findChords(possibleChords, endF, seed)
           }
         }
-      } else {
-        ???
-        //        //TODO : allOneCons non empty ?
-        //        //TODO : if part of length 2 or less
-        //        val allOneCons: List[Int] = ???
-        //        val allParts = (allOneCons.zip(allOneCons.tail)) map { x => (possibleChords( /*from x._1 to non compris x._2*/ ), possibleChords(x._2)) }
-        //        val endPart = (possibleChords( /*from allOneCons.last to last*/ ), endF)
-        //        val allRes = {
-        //          if (!useConstraintsSolver) ((allParts ::: endPart) map { y => findChords(y._1, y._2, seed) }).flatten
-        //          else 
-        //            val all = (allParts map {y => (y, false)}) ::: List((endPart, !compcForEnd))
-        //            
-        //            (all map { y =>
-        //            findChordsC(y._1._1, y._1._2, y._2) match {
-        //              case Some(possC) => possC
-        //              case None => {
-        //                println("could not solve with constraints, try with the linear harmonizer for possible diagnostic,\n but not all composer constraints will be satisfied.")
-        //                findChords(y._1, y._2, seed)
-        //              }
-        //            }
-        //          }).flatten
-        //        }
       }
+      //      //make it part by part (trial)
+      //      } else {
+      //        //TODO : allOneCons non empty ?
+      //        //TODO : if part of length 2 or less
+      //        val allOneCons: List[Int] = ??? //list of indices where strict composer constraint
+      //        val allParts = (allOneCons.zip(allOneCons.tail)) map { x => (possibleChords.slice( x._1, x._2 ), possibleChords(x._2)) }
+      //        val endPart = (possibleChords.slice( allOneCons.last, possibleChords.length ), endF)
+      //        val allRes = {
+      //          if (!useConstraintsSolver) ((allParts ::: endPart) map { y => findChords(y._1, y._2, seed) }).flatten
+      //          else
+      //            val all = (allParts map {y => (y, false)}) ::: List((endPart, !compcForEnd))
+      //
+      //            (all map { y =>
+      //            findChordsC(y._1._1, y._1._2, y._2) match {
+      //              case Some(possC) => possC
+      //              case None => {
+      //                println("could not solve with constraints, try with the linear harmonizer for possible diagnostic,\n but not all composer constraints will be satisfied.")
+      //                findChords(y._1, y._2, seed)
+      //              }
+      //            }
+      //          }).flatten
+      //        }
+      //      }
 
     }
 
