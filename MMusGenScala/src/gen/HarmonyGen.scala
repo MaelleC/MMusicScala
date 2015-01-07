@@ -24,7 +24,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
   val nbChordNotes = 4; //for basic note placement this is better than 3
 
-  def harmonize(endF: ChiEnd, useConstraintsSolver: Boolean = false, composerConstraints: List[(Int, List[CConstr])] = Nil): (MusicalSegment, ParallelSegment) = {
+  def harmonize(endF: ChiEnd, useConstraintsSolver: Boolean = false, composerConstraints: List[(Int, List[CConstr])] = Nil, harmonyRules: Boolean = true): (MusicalSegment, ParallelSegment) = {
     val mel = getMel(melody)
     val minNote = (mel.notes).filter { x =>
       x.tone match {
@@ -46,20 +46,48 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     }
     val possibleChords: List[List[ChInv]] = {
       if (compc.isEmpty) melT map (getPossChords(_))
-      else (melT zip compc) map (getPossChordsCons(_))
+      else {
+        (melT zip compc) map (getPossChordsCons(_))
+      }
 
     }
 
     val seed = Random.nextInt()
     val chosenChords = {
-      if (!useConstraintsSolver) findChords(possibleChords, endF, seed)
-      else findChordsC(possibleChords, endF, (compc.isEmpty || !compcForEnd)) match {
-        case Some(possC) => possC
-        case None => {
-          println("could not solve with constraints, try with the linear harmonizer for possible diagnostic,\n but not all composer constraints will be satisfied.")
-          findChords(possibleChords, endF, seed)
+      if (harmonyRules || compc.isEmpty) {
+        if (!useConstraintsSolver) findChords(possibleChords, endF, seed)
+        else {
+          findChordsC(possibleChords, endF, (compc.isEmpty || !compcForEnd)) match {
+            case Some(possC) => possC
+            case None => {
+              println("could not solve with constraints, try with the linear harmonizer for possible diagnostic,\n but not all composer constraints will be satisfied.")
+              findChords(possibleChords, endF, seed)
+            }
+          }
         }
+      } else {
+        ???
+//        //TODO : allOneCons non empty ?
+//        val allOneCons: List[Int] = ???
+//        val allParts = (allOneCons.zip(allOneCons.tail)) map { x => (possibleChords( /*from x._1 to non compris x._2*/ ), possibleChords(x._2)) }
+//        val endPart = (possibleChords( /*from allOneCons.last to last*/ ), endF)
+//        val allRes = {
+//          if (!useConstraintsSolver) ((allParts ::: endPart) map { y => findChords(y._1, y._2, seed) }).flatten
+//          else 
+//            val all = (allParts map {y => (y, false)}) ::: List((endPart, !compcForEnd))
+//            
+//            (all map { y =>
+//            findChordsC(y._1._1, y._1._2, y._2) match {
+//              case Some(possC) => possC
+//              case None => {
+//                println("could not solve with constraints, try with the linear harmonizer for possible diagnostic,\n but not all composer constraints will be satisfied.")
+//                findChords(y._1, y._2, seed)
+//              }
+//            }
+//          }).flatten
+//        }
       }
+
     }
 
     println("Notes to harmonize (with their index in list) : ")
@@ -199,7 +227,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
   def findChordsC(poss: List[List[ChInv]], endF: HavePrev, useEnd: Boolean): Option[List[ChInv]] = {
     val possE = {
       if (useEnd && endF != NoEnd && poss.nonEmpty) {
-        //acts differently than the linear if there are silents at the end, otherwise : same behaviour here
+        //TODO : acts differently than the linear if there are silents at the end, otherwise : same behaviour here
         val inter = poss.last.intersect(prevPoss(endF))
 
         if (inter.isEmpty) {
