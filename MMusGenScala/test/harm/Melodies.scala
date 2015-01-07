@@ -43,7 +43,7 @@ class Melodies extends FunSuite with MelodyWriter {
   test("oneMelodyCons") {
 
     val partharm = {
-      I + IV + V + I
+      I + IV + V + I + O
     }
 
     val tempo = 60
