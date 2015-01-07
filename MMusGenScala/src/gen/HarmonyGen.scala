@@ -199,6 +199,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
   def findChordsC(poss: List[List[ChInv]], endF: HavePrev, useEnd: Boolean): Option[List[ChInv]] = {
     val possE = {
       if (useEnd && endF != NoEnd && poss.nonEmpty) {
+        //acts differently than the linear if there are silents at the end, otherwise : same behaviour here
         val inter = poss.last.intersect(prevPoss(endF))
 
         if (inter.isEmpty) {
@@ -220,6 +221,32 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     def mergeP(prev: List[(ChInv, Formula)], poss: (List[ChInv], Formula)): List[(Formula, Formula)] = {
       for (i <- poss._1; j <- prev if j._1 == i) yield (j._2, poss._2)
     }
+
+    val consVarsNoEmptyChord = consVarsCh.filterNot({ x =>
+      x.exists({ y =>
+        y._1 match {
+          case ChInv(EmptyChord, _) => true
+          case _ => false
+        }
+      })
+    })
+
+    val pairsFormulas = {
+      if (consVarsNoEmptyChord.nonEmpty) (consVarsNoEmptyChord zip consVarsNoEmptyChord.tail) map { x => possPairs(x._1, x._2) }
+      else Nil
+    }
+
+    val pairVars = pairsFormulas map { x => x map { y => boolVar() } }
+    val onlyOnePairChInv = ((pairsFormulas zip pairVars) map { x => Constraints.exactlyOnePair(x._1, x._2) }).flatten
+
+    val allConstraintsSimple = onlyOneChInv ++ onlyOnePairChInv
+    val solSimple = solveForSatisfiability(and(allConstraintsSimple: _*)) match {
+      case None => None
+      case Some(result) => Some(consVarsCh map { x => (x.filter { y => result(y._2) }).head._1 })
+    }
+
+    //all functions for more constraints
+
     def noTwice2(c1: List[(ChInv, Formula)], c2: List[(ChInv, Formula)]): List[Formula] = {
       val c1Prob = c1.filterNot { x => noProb2(x._1) }
       val c2Prob = c2.filterNot { x => noProb2(x._1) }
@@ -251,29 +278,6 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
         case ChInv(Triad(IV(_, _)), Fond) => true
         case _ => false
       }
-    }
-
-    val consVarsNoEmptyChord = consVarsCh.filterNot({ x =>
-      x.exists({ y =>
-        y._1 match {
-          case ChInv(EmptyChord, _) => true
-          case _ => false
-        }
-      })
-    })
-
-    val pairsFormulas = {
-      if (consVarsNoEmptyChord.nonEmpty) (consVarsNoEmptyChord zip consVarsNoEmptyChord.tail) map { x => possPairs(x._1, x._2) }
-      else Nil
-    }
-
-    val pairVars = pairsFormulas map { x => x map { y => boolVar() } }
-    val onlyOnePairChInv = ((pairsFormulas zip pairVars) map { x => Constraints.exactlyOnePair(x._1, x._2) }).flatten
-
-    val allConstraintsSimple = onlyOneChInv ++ onlyOnePairChInv
-    val solSimple = solveForSatisfiability(and(allConstraintsSimple: _*)) match {
-      case None => None
-      case Some(result) => Some(consVarsCh map { x => (x.filter { y => result(y._2) }).head._1 })
     }
 
     val int2PairsCons = {
@@ -338,7 +342,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
           findChord(nextC, possC.tail, nextC :: buf, false, nCh - 1)
         }
       } else if (possC.head.head.c == EmptyChord) {
-        //silent : give silent chord, but continues harmony for next
+        //silent : give silent chord, but continue harmony for next
         findChord(next, possC.tail, ChInv(EmptyChord, Fond) :: buf, forceEnd, nCh - 1)
       } else {
         val possChI = possC.head
@@ -351,6 +355,8 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
           // but there are possible chords (possC.head isn't empty)
           if (buf.nonEmpty && possChI.intersect(List(buf.head)).nonEmpty) {
             //give the previous if it is possible
+            printWarnNote(nCh, "not chord harmonically ok is compatible with the note",
+              "the previous chord is kept.")
             val nextC = possChI.intersect(List(buf.head)).head
             findChord(nextC, possC.tail, nextC :: buf, false, nCh - 1)
           } else {
