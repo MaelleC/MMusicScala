@@ -7,7 +7,7 @@ object Chord {
     c match {
       case Triad(x) => ChInvPoss(c, Set(Fond, Inv1, Inv2))
       case Seventh(x) => ChInvPoss(c, Set(Fond, Inv1, Inv2, Inv3))
-      case _ => ChInvPoss(c, Set(Fond, Inv1, Inv2)) //TODO : see for other what to put
+      case _ => ChInvPoss(c, Set(Fond))
     }
   }
 }

@@ -11,12 +11,18 @@ import Chord._
 import cafesat.api.API._
 
 case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm, perhaps change at the end
+
+  //-----------------------------------------------------------------------------------------
+  //if you want to add chords :
+  //add them in allChords list,
+  // take care of them in possChInv (which is in getPossChords) and in prevPoss
+  // also in file "Inversions", in Chord2CConstr
+  //-----------------------------------------------------------------------------------------
+
   val allChords: List[Chord] = List(Triad(I), Triad(II), Triad(III),
     Triad(IV), Triad(V), Triad(VI), Triad(VII), Seventh(V))
-  //TODO add all what is in the grammar
-  //TODO : should be ChInvPoss perhaps ?
 
-  val nbChordNotes = 4; //for basic note placement that is better than 3
+  val nbChordNotes = 4; //for basic note placement this is better than 3
 
   def harmonize(endF: ChiEnd, useConstraintsSolver: Boolean = false, composerConstraints: List[(Int, List[CConstr])] = Nil): (MusicalSegment, ParallelSegment) = {
     val mel = getMel(melody)
@@ -146,8 +152,6 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
         //Inv2 is not stable and should be avoided in default case
         case Triad(_) => List(ChInv(c, Fond), ChInv(c, Inv1))
         case Seventh(_) => List(ChInv(c, Fond), ChInv(c, Inv1), ChInv(c, Inv2), ChInv(c, Inv3))
-
-        //TODO : add other special cases (in terms of chord)
 
         case _ if (c.tones.size == 3) => List(ChInv(c, Fond), ChInv(c, Inv1), ChInv(c, Inv2))
         case _ if (c.tones.size == 4) => List(ChInv(c, Fond), ChInv(c, Inv1), ChInv(c, Inv2), ChInv(c, Inv3))
@@ -425,18 +429,17 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
   // TODO ? : if V7+ -> I, I has to be Fond, can't be I6
   //TODO : relax some constraints (fi1 really necessary always ?), only for I probably is needed, but think more
   //TODO : put in prevPoss things for all chords of possibleChords !!!
-  def prevPoss(ci: HavePrev) /* extends PartialFunction[??]*/ : List[ChInv] = {
+  def prevPoss(ci: HavePrev): List[ChInv] = {
     ci match {
       case ChInv(Triad(I(_, None)), i) if fi1(i) => possInvToInv(ChInvPoss(Seventh(V), Set(Fond, Inv1, Inv2, Inv3))) ::: HarmFct(V)
       case ChInv(Triad(II(_, None)), i) if fi1(i) => HarmFct(I)
-      //case ChInv(Triad(III(_, None)), i) if fi1(i) => ??? //no need yet
+      case ChInv(Triad(III(_, None)), i) if fi1(i) => ??? //no need yet
       case ChInv(Triad(IV(_, None)), i) if fi1(i) => HarmFct(I)
       case ChInv(Triad(V(_, None)), i) if fi1(i) => HarmFct(I) ::: HarmFct(IV)
       case ChInv(Triad(VI(_, None)), i) if fi1(i) => getCiL(List(V), List(Fond, Inv1))
       case ChInv(Triad(VII(_, None)), i) if fi1(i) => HarmFct(I) ::: HarmFct(IV)
       case ChInv(Triad(I(_, None)), Inv2) => HarmFct(IV)
       case ChInv(Seventh(V(o, None)), i) => prevPoss(ChInv(Triad(V(o, None)), Fond))
-      //TODO : add others ? (perhaps no need yet of nap and secondaryDoms)
       case EndReal => List(ChInv(Triad(I), Fond))
       case EndMiddle => ChInv(Triad(I), Fond) :: getCiL(List(VI), List(Fond, Inv1))
       case EndHalf => List(ChInv(Triad(V), Fond))
