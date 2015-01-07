@@ -1,0 +1,21 @@
+[1mdiff --git a/MMusGenScala/src/gen/HarmonyGen.scala b/MMusGenScala/src/gen/HarmonyGen.scala[m
+[1mindex 6444f3b..46e97a3 100644[m
+[1m--- a/MMusGenScala/src/gen/HarmonyGen.scala[m
+[1m+++ b/MMusGenScala/src/gen/HarmonyGen.scala[m
+[36m@@ -165,6 +165,7 @@[m [mcase class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm[m
+     }[m
+   }[m
+ [m
+[32m+[m[32m  //TODO : put prio to things given by composer even if dissonance or intersection or ..... ?[m
+   def getPossChordsCons(cc: (Tone, List[CConstr])): List[ChInv] = {[m
+     def mergeChInv(p: List[ChInv], c: List[CConstr]): List[ChInv] = {[m
+       if (c.head == NoCons) p[m
+[36m@@ -185,7 +186,7 @@[m [mcase class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm[m
+   }[m
+ [m
+   //find chords with formal constraints and cafesat[m
+[31m-  //TODO compc info is included in poss : mode "harmony rules"[m
+[32m+[m[32m  //compc info is included in poss[m
+   def findChordsC(poss: List[List[ChInv]], endF: HavePrev, useEnd: Boolean): Option[List[ChInv]] = {[m
+     val possE = {[m
+       if (useEnd && endF != NoEnd && poss.nonEmpty) {[m

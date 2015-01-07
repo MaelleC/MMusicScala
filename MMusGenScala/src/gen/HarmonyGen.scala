@@ -12,12 +12,12 @@ import cafesat.api.API._
 
 case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm, perhaps change at the end
 
-  //-----------------------------------------------------------------------------------------
-  //if you want to add chords :
+  //--------------------------------------------------------------------------------------------------------
+  //if you want to add chords : (ex : NapSixth or different SecDom (careful : depends on major or minor))
   //add them in allChords list,
   // take care of them in possChInv (which is in getPossChords) and in prevPoss
   // also in file "Inversions", in Chord2CConstr
-  //-----------------------------------------------------------------------------------------
+  //--------------------------------------------------------------------------------------------------------
 
   val allChords: List[Chord] = List(Triad(I), Triad(II), Triad(III),
     Triad(IV), Triad(V), Triad(VI), Triad(VII), Seventh(V))
@@ -46,7 +46,6 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     }
     val possibleChords: List[List[ChInv]] = {
       if (compc.isEmpty) melT map (getPossChords(_))
-      //TODO perhaps different when several only one chord ok from composer
       else (melT zip compc) map (getPossChordsCons(_))
 
     }
@@ -63,7 +62,8 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
       }
     }
 
-    println("Remark : notes are counted from 0")
+    println("Notes to harmonize (with their index in list) : ")
+    println(melT.zipWithIndex)
     println("Chosen chords (with their inversion and index in list) : ")
     println(chosenChords.zipWithIndex)
 
@@ -166,15 +166,25 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
   }
 
   def getPossChordsCons(cc: (Tone, List[CConstr])): List[ChInv] = {
-    def mergeChInv(p: List[ChInv], c: List[CConstr]): List[ChInv] = {
+
+    //give all power to composer, there can be dissonances
+    def mergePrioComposer(p: List[ChInv], c: List[CConstr]): List[ChInv] = {
       if (c.head == NoCons) p
-      else {
-        val chInvs = (c map { x => possInvToInv(x) }).flatten
-        for { i <- p; j <- chInvs if i == j }
-          yield i
-      }
+      else (c map { x => possInvToInv(x) }).flatten
     }
-    mergeChInv(getPossChords(cc._1), cc._2)
+
+    mergePrioComposer(getPossChords(cc._1), cc._2)
+
+    //    //take intersection with possible chords
+    //    def mergeChInv(p: List[ChInv], c: List[CConstr]): List[ChInv] = {
+    //      if (c.head == NoCons) p
+    //      else {
+    //        val chInvs = (c map { x => possInvToInv(x) }).flatten
+    //        for { i <- p; j <- chInvs if i == j }
+    //          yield i
+    //      }
+    //    }
+    //    mergeChInv(getPossChords(cc._1), cc._2)
   }
 
   def possInvToInv(cip: CConstr): List[ChInv] = {
@@ -185,7 +195,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
   }
 
   //find chords with formal constraints and cafesat
-  //TODO compc info is included in poss : mode "harmony rules"
+  //compc info is included in poss
   def findChordsC(poss: List[List[ChInv]], endF: HavePrev, useEnd: Boolean): Option[List[ChInv]] = {
     val possE = {
       if (useEnd && endF != NoEnd && poss.nonEmpty) {
@@ -452,9 +462,9 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
       case _ => Nil
     }
   }
-  def fi1(i: Inversion): Boolean = {
-    i == Fond || i == Inv1
-  }
+  //  def fi1(i: Inversion): Boolean = {
+  //    i == Fond || i == Inv1
+  //  }
 
   def HarmFct(t: Tone): List[ChInv] = {
     t match {
