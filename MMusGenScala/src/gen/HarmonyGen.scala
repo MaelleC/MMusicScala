@@ -59,7 +59,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
       }
     }
 
-    println("remark : notes are counted from 0")
+    println("Remark : notes are counted from 0")
     println("Chosen chords (with their inversion and index in list) : ")
     println(chosenChords.zipWithIndex)
 
@@ -79,7 +79,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
   def getConsList(ori: List[(Int, List[CConstr])], melLen: Int): List[List[CConstr]] = {
     //!!!!!!!!!!
-    //TODO : verify that in possibleChords !!
+    //TODO : verify that in allChords and with possible inversions (si 3 notes : no inv3 p ex.)
     //also : put in prevPoss things for all chords of possibleChords !!!
     def noConsL(i1: Int, i2: Int): List[List[CConstr]] = (List.range(i1, i2) map { x => List(NoCons) })
     def getConsList0(buf: List[List[CConstr]], o: List[(Int, List[CConstr])]): List[List[CConstr]] = {
@@ -87,15 +87,22 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
         if (buf.length != melLen) buf ::: noConsL(buf.length, melLen)
         else buf
       } else {
-        if (o.head._1 < buf.length) getConsList0(buf, o.tail)
-        else getConsList0(buf ::: noConsL(buf.length, o.head._1) ::: List(o.head._2), o.tail)
+        if (o.head._1 < buf.length) {
+          if (o.head._1 == buf.length - 1) {
+            printWarn("Duplicate constraint in constraints list for index " + o.head._1,
+              "Superfluous constraint is dropped")
+          } else {
+            printWarn("Wrong order in constraints list for index " + o.head._1,
+              " Constraint is dropped")
+          }
+          getConsList0(buf, o.tail)
+        } else getConsList0(buf ::: noConsL(buf.length, o.head._1) ::: List(o.head._2), o.tail)
       }
     }
 
     val indices = ori map { x => x._1 }
     if (indices.max >= melLen) error("Indices should be less than " + melLen + " (which is the length of the melody).")
     else if (indices.min < 0) error("Indices should be greater or equal to zero.")
-    //TODO : in increasing order ?, no duplicates ? drop them in getConsList0 and give a warning
     getConsList0(Nil, ori)
   }
 
@@ -111,6 +118,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
         case EmptyChord => List(ChInv(EmptyChord, Fond))
         case Triad(I(_, _)) => List(ChInv(c, Fond), ChInv(c, Inv1), ChInv(c, Inv2))
 
+        //Inv2 is not stable and should be avoided in default case
         case Triad(_) => List(ChInv(c, Fond), ChInv(c, Inv1))
         case Seventh(_) => List(ChInv(c, Fond), ChInv(c, Inv1), ChInv(c, Inv2), ChInv(c, Inv3))
 
@@ -124,6 +132,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
 
     t match {
       case O => List(ChInv(EmptyChord, Fond))
+      //TODO ? special case for III(_, None) in the filter clause to avoid it ?
       case _ => (allChords.filter(_.contains(t))).map(x => possChInv(x)).flatten
     }
   }
@@ -198,12 +207,14 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
         if (forceEnd || buf.isEmpty) {
           //force a chord from prev of next
           val nextC = rand.shuffle(prevPoss(next)).head
-          printWarn(nCh, "no chord compatible with the note, too bizarre note;\na random End-compatible chord is chosen.")
+          printWarnNote(nCh, "no chord compatible with the note, too bizarre note",
+            "a random End-compatible chord is chosen.")
           findChord(nextC, possC.tail, nextC :: buf, false, nCh - 1)
         } else {
           //keep the previous chord
           val nextC = buf.head
-          printWarn(nCh, "no chord compatible with the note, too bizarre note;\nprevious chord is kept.")
+          printWarnNote(nCh, "no chord compatible with the note, too bizarre note",
+            "previous chord is kept.")
           findChord(nextC, possC.tail, nextC :: buf, false, nCh - 1)
         }
       } else if (possC.head.head.c == EmptyChord) {
@@ -225,12 +236,14 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
           } else {
             if (forceEnd) {
               //force a chord from prev of next
-              printWarn(nCh, "not compatible with the given End;\na random End-compatible chord is chosen.")
+              printWarnNote(nCh, "not compatible with the given End",
+                "a random End-compatible chord is chosen.")
               val nextC = rand.shuffle(prevPoss(next)).head
               findChord(nextC, possC.tail, nextC :: buf, false, nCh - 1)
             } else {
               //take a possible chord, even if harmonically not ok
-              printWarn(nCh, "not chord harmonically ok is compatible with the note;\na random chord in the compatible ones is chosen.")
+              printWarnNote(nCh, "not chord harmonically ok is compatible with the note",
+                "a random chord in the compatible ones is chosen.")
               val nextC = rand.shuffle(possChI).head
               findChord(nextC, possC.tail, nextC :: buf, false, nCh - 1)
             }
@@ -349,9 +362,10 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
   def getCiL(t: List[Tone], i: List[Inversion]): List[ChInv] =
     (t.map(x => i map { y => ChInv(Triad(x), y) })).flatten
 
-  def printWarn(nb: Int, str: String) = {
-    println("Note " + nb + " : " + str)
-  }
+  def printWarnNote(nb: Int, str1: String, str2: String) =
+    printWarn("note " + nb + " : " + str1, str2)
+  def printWarn(str1: String, str2: String) =
+    println("warn : " + str1 + ".\n  " + str2)
 
 }
 
