@@ -455,8 +455,9 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
       }
 
     }
-
-    findChord(endF, poss.reverse, Nil, true, poss.length - 1)
+    if (endF == NoEnd) findChord(EndReal, poss.reverse, Nil, true, poss.length - 1)
+    else findChord(endF, poss.reverse, Nil, true, poss.length - 1)
+    
   }
 
   /**
