@@ -6,9 +6,10 @@ import tonalSystem.Tone._
 object Chord {
   implicit def Chord2CConstr(c: Chord): CConstr = {
     c match {
-      case Triad(I(_, None)) => ChInvPoss(c, Set(Fond, Inv1, Inv2))
-      case Triad(x) => ChInvPoss(c, Set(Fond, Inv1))
-      case Seventh(x) => ChInvPoss(c, Set(Fond, Inv1, Inv2, Inv3))
+      //better enforcement of composer constraints like that; makes more sense, too
+      //      case Triad(I(_, None)) => ChInvPoss(c, Set(Fond, Inv1, Inv2))
+      //      case Triad(x) => ChInvPoss(c, Set(Fond, Inv1))
+      //      case Seventh(x) => ChInvPoss(c, Set(Fond, Inv1, Inv2, Inv3))
       case _ => ChInvPoss(c, Set(Fond))
     }
   }

@@ -10,6 +10,8 @@ import tonalSystem.Minor
 import segmentSystem.Sequential
 import gen._
 import org.scalatest.FunSuite
+import chord._
+import gen.Chord._ //implicit conversion
 
 class Melodies extends FunSuite with MelodyWriter {
   implicit val noteDuration = E
@@ -79,6 +81,33 @@ class Melodies extends FunSuite with MelodyWriter {
       tempo,
       instrument = instrument)
   }
+  
+//  test("compInputParts") {
+//
+//    val partharm = {
+//      I + II + III + IV + V + VI + VII + VI + V + IV + III + II + I + O
+//    }
+//
+//    val tempo = 60
+//    val instrument = 0
+//    val minScale = Minor(A)
+//    
+//    val comp: List[(Int, List[CConstr])] = List(
+//        (1, List(Triad(I))),
+//        (2, List(Triad(VII))),
+//        (6, List(Triad(II), Triad(III))),
+//        (13, List(Triad(IV)))
+//        )
+//    
+//    val d = HarmonyGen(partharm)
+//    val e = d.harmonize(EndReal, true, comp, false)._2
+//
+//    MelodyPlayer(
+//      Sequential(Nil)
+//        + (e withScale Major(A)),
+//      tempo,
+//      instrument = instrument)
+//  }
 
   //tests for linear diagnostic
 
