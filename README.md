@@ -9,6 +9,9 @@ In ScalaMusicGeneration/MusicInterface, do sbt eclipse
 Import the project into eclipse
 Import this project into eclipse
 
+configure build path of MMusicScala project to this project
+also to scalatest_2.10-2.1.3.jar that you can download
+
 Then :
 Clone the app branch of https://github.com/regb/scabolic
 Revert it to the commit a1c6d3045ac880d33da6f1ecfbafb1f4c4f0aa2c
