@@ -10,7 +10,7 @@ import scala.collection.mutable.ListBuffer
 import Chord._
 import cafesat.api.API._
 
-case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm, perhaps change at the end
+case class HarmonyGen(melody: MusicalSegment) {
 
   //--------------------------------------------------------------------------------------------------------
   //if you want to add chords : (ex : NapSixth or different SecDom (careful : depends on major or minor))
