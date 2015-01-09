@@ -24,10 +24,12 @@ trait HavePrev
 case class ChInv(c: Chord, i: Inversion) extends HavePrev
 
 class ChiEnd extends HavePrev with CConstr
-case object EndReal extends ChiEnd //want real complete cadence
-case object EndMiddle extends ChiEnd // deceptive cadence can be ok
-case object EndHalf extends ChiEnd
-case object NoEnd extends ChiEnd
+case object EndReal extends ChiEnd //authentic cadence
+case object EndMiddle extends ChiEnd // authentic cadence or deceptive cadence
+case object EndHalf extends ChiEnd // half cadence
+case object NoEnd extends ChiEnd //no particular cadence;
+	//for linear harmonizer the default will be used (EndReal)
+	//for constraints-based harmonizer, one of the possible chords will be used for the end
 
 trait Inversion {
   val first: Int

@@ -19,6 +19,8 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
   // also in file "Inversions", in Chord2CConstr
   //--------------------------------------------------------------------------------------------------------
 
+  //see test.harm.ComposerInputTest, to have some examples of composer input
+
   val allChords: List[Chord] = List(Triad(I), Triad(II), Triad(III),
     Triad(IV), Triad(V), Triad(VI), Triad(VII), Seventh(V))
 
@@ -177,7 +179,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
         } else {
           val valid = {
             if (o.head._2.contains(NoCons)) {
-              if (o.head._2.length != 1) printWarn("For index " + o.head._1, "all other than NoCons are not taken into account")
+              if (o.head._2.length != 1) printWarn("For index " + o.head._1, "all other than NoCons are not taken into accountif there were some")
               List(NoCons)
             } else {
               o.head._2 filter { x =>
@@ -457,7 +459,7 @@ case class HarmonyGen(melody: MusicalSegment) { //TODO : need that for test.Harm
     }
     if (endF == NoEnd) findChord(EndReal, poss.reverse, Nil, true, poss.length - 1)
     else findChord(endF, poss.reverse, Nil, true, poss.length - 1)
-    
+
   }
 
   /**
