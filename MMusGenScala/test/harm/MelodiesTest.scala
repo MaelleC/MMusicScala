@@ -160,4 +160,66 @@ class MelodiesTest extends FunSuite with MelodyWriter {
 
   }
 
+  test("twinkle") { //with constraints ok
+    val withConstraints = true
+    val mel = {
+      I / (2) + I / (2) + V / (2) + V / (2) + VI / (2) + VI / (2) + V +
+        IV / (2) + IV / (2) + III / (2) + III / (2) + II / (2) + II / (2) + I +
+        V / (2) + V / (2) + IV / (2) + IV / (2) + III / (2) + III / (2) + II +
+        V / (2) + V / (2) + IV / (2) + IV / (2) + III / (2) + III / (2) + II +
+        I / (2) + I / (2) + V / (2) + V / (2) + VI / (2) + VI / (2) + V +
+        IV / (2) + IV / (2) + III / (2) + III / (2) + II / (2) + II / (2) + I
+    }
+
+    val harm1 = {
+      I + V + VI + V
+
+    }
+    val harm2 = {
+      IV + III + II + I
+    }
+
+    val harm3 = {
+      V + IV + III + II
+    }
+
+    val p1 = HarmonyGen(harm1)
+    val p2 = HarmonyGen(harm2)
+    val p3 = HarmonyGen(harm3)
+    val part1h = p1.harmonize(EndHalf, withConstraints)._2
+    val part2h = p2.harmonize(EndReal, withConstraints)._2
+    val part3h = p3.harmonize(EndHalf, withConstraints)._2
+
+    playMel(mel, part1h + part2h + part3h + part3h + part1h + part2h, majscale)
+
+  }
+
+  test("oh tannenbaum/mon beau sapin") { //constraints not ok
+    val mel = {
+      (V - 7) + I / (4 / 3.0) + I / (4) + I / (0.5) + II + III / (4 / 3.0) + III / (4) + III / (2 / 3.0) +
+        III / (2) + II / (2) + III / (2) + IV + (VII - 7) + II + I / (2 / 3.0) +
+        V / (2) + V / (2) + III / (2) + VI / (2 / 3.0) + V / (2) + V / (2) + IV / (2) + IV / (2 / 3.0) +
+        IV / (2) + IV / (2) + II / (2) + V / (2 / 3.0) + IV / (2) + IV / (2) + III / (2) + III / (0.5) +
+        (V - 7) + I / (4 / 3.0) + I / (4) + I / (0.5) + II + III / (4 / 3.0) + III / (4) + III / (2 / 3.0) +
+        III / (2) + II / (2) + III / (2) + IV + (VII - 7) + II + I / (0.5)
+    }
+
+    val harm1 = {
+      O + I / (1 / 3.0) + V + III / (1 / 3.0) + //replaced II by V
+        II + IV + (VII - 7) + II + I / (0.5)
+
+    }
+    val harm2 = {
+      V + VI / (0.5) + V + IV / (0.5) +
+        IV + V / (0.5) + IV + III / (0.5)
+    }
+
+    val p1 = HarmonyGen(harm1)
+    val p2 = HarmonyGen(harm2)
+    val part1h = p1.harmonize(EndReal)._2
+    val part2h = p2.harmonize(EndReal)._2
+
+    playMel(mel, part1h + part2h + part1h, majscale)
+  }
+
 }
