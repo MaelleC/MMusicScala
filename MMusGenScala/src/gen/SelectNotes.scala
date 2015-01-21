@@ -10,20 +10,28 @@ object SelectNotes {
     val melN = mel.notes
 
     def getNotes(orig: List[Note], buf: List[Note], c: Double): List[Note] = {
-      //      println("One it")
-      //      println(orig)
-      //      println(buf)
-      //      println(c)
-      if (c > d.computed) getNotes(orig, Note(buf.head.tone, BPM(d.computed + buf.head.duration.computed)) :: buf.tail, c - d.computed)
+      if (c > d.computed)
+        getNotes(orig, Note(buf.head.tone, BPM(d.computed + buf.head.duration.computed)) :: buf.tail, c - d.computed)
       //Note(buf.head.tone, d) :: buf
       else if (orig.isEmpty) buf
-      else if (c + orig.head.duration.computed > d.computed) getNotes(orig.tail, Note(orig.head.tone, d) :: buf, c + orig.head.duration.computed - d.computed)
-      else getNotes(orig.tail, buf, c + orig.head.duration.computed)
+      else if (c + orig.head.duration.computed > d.computed) {
+        val comp = {
+          if (orig.tail.isEmpty) BPM(c + orig.head.duration.computed - d.computed)
+          else d
+        }
+        getNotes(orig.tail, Note(orig.head.tone, comp) :: buf, c + orig.head.duration.computed - d.computed)
+      } else {
+        if (orig.tail.isEmpty) {
+          Note(buf.head.tone, BPM(c + orig.head.duration.computed)) :: buf.tail
+        } else getNotes(orig.tail, buf, c + orig.head.duration.computed)
+
+      }
     }
 
     if (melN.nonEmpty) {
 
-      toSequ(getNotes(melN.tail, List(Note(melN.head.tone, d)), melN.head.duration.computed).reverse)
+      if (melN.tail.isEmpty) toSequ(melN)
+      else toSequ(getNotes(melN.tail, List(Note(melN.head.tone, d)), melN.head.duration.computed).reverse)
     } else EmptySeq
 
   }
