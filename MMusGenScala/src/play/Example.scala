@@ -82,25 +82,25 @@ object Example extends App with MelodyWriter {
   }
 
   val tempo = 100
-  val instrument = 0
+  val instrument = 54
   val minScale = Major(A)
 
   //  val h1 = HarmonyGen(part1Harm)
-  //  val mlin = (part + 7) | h1.harmonize(EndReal, false)._2 //one example is on record "linearHarmonizer_Begin.mid"
-  //  val m1 = (part + 7) | h1.harmonize(EndReal, true)._2
+  //  val mlin = (part + 14) | h1.harmonize(EndReal, false)._2 //one example is on record "linearHarmonizer_Begin.mid"
+  //  val m1 = (part + 14) | h1.harmonize(EndReal, true)._2
   //
   //  val h2 = HarmonyGen(part2Harm)
-  //  val m2 = (part + 7) | h2.harmonize(EndReal, true)._2
+  //  val m2 = (part + 14) | h2.harmonize(EndReal, true)._2
   //
   //  val h3 = HarmonyGen(part3Harm)
-  //  val m3 = (part + 7) | h3.harmonize(EndReal, true)._2
+  //  val m3 = (part + 14) | h3.harmonize(EndReal, true)._2
   //
   //  val h4 = HarmonyGen(part4Harm)
-  //  val m4 = (part + 7) | h4.harmonize(EndReal, true)._2
+  //  val m4 = (part + 14) | h4.harmonize(EndReal, true)._2
   //  
   val hf = HarmonyGen(partFinalHarm)
-  val mf = (part + 7) | hf.harmonize(EndReal, true)._2 //one example is on record "constraintsBasedHarmonizer.mid"
-  //  val lf = (part + 7) | hf.harmonize(EndReal, false)._2 //one example is on record "linearHarmonizer_Begin.mid"
+  val mf = (part + 14) | hf.harmonize(EndReal, true)._2 //one example is on record "constraintsBasedHarmonizer.mid"
+  //  val lf = (part + 14) | hf.harmonize(EndReal, false)._2 //one example is on record "linearHarmonizer_Begin.mid"
 
   MelodyPlayer(
     Sequential(Nil)
