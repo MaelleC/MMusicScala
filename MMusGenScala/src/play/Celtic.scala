@@ -21,6 +21,10 @@ import gen.Chord._ //implicit conversion
 object Celtic extends App with MelodyWriter {
   implicit val noteDuration = E
 
+  //  val partA = {
+  //    I + II + III + IV + V
+  //  }
+
   val part1 = {
     (O + III + IV
       + V / (2 / 3.0) + IV / (2.0) + III
@@ -107,6 +111,9 @@ object Celtic extends App with MelodyWriter {
   val d = HarmonyGen(compose(part1harm, part2harm, part3harm, 14))
   val e = compose(part1, part2, part3, 14) | d.harmonize(EndReal /*, false, comp*/ )._2
 
+  //  val comp: List[(Int, List[CConstr])] = List((0, List(Triad(I))))
+  //  val d = HarmonyGen(part1harm)
+  //  val e = ((part1)  + 14) | d.harmonize(EndReal, true, comp )._2
   MelodyPlayer(
     Sequential(Nil)
       + (e withScale minScale),
