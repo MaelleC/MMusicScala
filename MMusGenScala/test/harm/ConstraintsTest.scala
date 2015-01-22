@@ -57,4 +57,13 @@ class ConstraintsTest extends FunSuite {
     assert(solveForSatisfiability(and(e: _*)) != None)
 
   }
+
+  test("or empty") {
+    val cl = List.range(0, 4) map { _ => boolVar() }
+    val d = Constraints.exactlyOne(cl)
+    val e = Constraints.exactlyOne(List())
+    val all = d ++ e
+    println(all)
+    assert(solveForSatisfiability(and(all: _*)) == None)
+  }
 }
